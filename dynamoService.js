@@ -206,13 +206,17 @@ const getAllCustomers = async () => {
 };
 
 const searchCustomers = async (query) => {
+    // DynamoDB contains is case-sensitive, so fetch all and filter locally for better UX
     const response = await docClient.send(new ScanCommand({
         TableName: TABLES.CUSTOMERS,
-        FilterExpression: 'contains(#name, :query) OR contains(mobile, :query)',
-        ExpressionAttributeNames: { '#name': 'name' },
-        ExpressionAttributeValues: { ':query': query },
     }));
-    return response.Items || [];
+    const customers = response.Items || [];
+    const lowerQuery = query.toLowerCase();
+
+    return customers.filter(c =>
+        (c.name && c.name.toLowerCase().includes(lowerQuery)) ||
+        (c.mobile && c.mobile.includes(query))
+    );
 };
 
 const updateCustomer = async (customerId, updates) => {
