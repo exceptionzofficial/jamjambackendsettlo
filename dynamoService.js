@@ -18,7 +18,42 @@ const TABLES = {
     CUSTOMERS: 'JamJamCustomers',
     GAMES: 'JamJamGames',
     BOOKINGS: 'JamJamBookings',
+    MENU_ITEMS: 'JamJamMenuItems',
+    COMBOS: 'JamJamCombos',
+    RESTAURANT_ORDERS: 'JamJamRestaurantOrders',
+    BAKERY_ITEMS: 'JamJamBakeryItems',
+    BAKERY_ORDERS: 'JamJamBakeryOrders',
+    JUICE_ITEMS: 'JamJamJuiceItems',
+    JUICE_ORDERS: 'JamJamJuiceOrders',
 };
+
+// Default Menu Items
+const DEFAULT_MENU_ITEMS = [
+    // Veg Items
+    { itemId: 'menu_1', name: 'Veg Biryani', category: 'veg', price: 150, description: 'Aromatic rice with mixed vegetables', available: true },
+    { itemId: 'menu_2', name: 'Paneer Butter Masala', category: 'veg', price: 180, description: 'Paneer in rich tomato gravy', available: true },
+    { itemId: 'menu_3', name: 'Dal Fry', category: 'veg', price: 120, description: 'Yellow lentils tempered with spices', available: true },
+    { itemId: 'menu_4', name: 'Veg Fried Rice', category: 'veg', price: 130, description: 'Stir fried rice with vegetables', available: true },
+    { itemId: 'menu_5', name: 'Jeera Rice', category: 'veg', price: 100, description: 'Basmati rice with cumin', available: true },
+    { itemId: 'menu_6', name: 'Butter Naan', category: 'veg', price: 40, description: 'Soft naan brushed with butter', available: true },
+    // Non-Veg Items
+    { itemId: 'menu_7', name: 'Chicken Biryani', category: 'non-veg', price: 200, description: 'Hyderabadi style chicken biryani', available: true },
+    { itemId: 'menu_8', name: 'Butter Chicken', category: 'non-veg', price: 220, description: 'Creamy tomato chicken curry', available: true },
+    { itemId: 'menu_9', name: 'Mutton Curry', category: 'non-veg', price: 280, description: 'Spicy mutton in rich gravy', available: true },
+    { itemId: 'menu_10', name: 'Fish Fry', category: 'non-veg', price: 180, description: 'Crispy fried fish', available: true },
+    { itemId: 'menu_11', name: 'Egg Curry', category: 'non-veg', price: 140, description: 'Eggs in spiced onion gravy', available: true },
+    { itemId: 'menu_12', name: 'Chicken Fried Rice', category: 'non-veg', price: 160, description: 'Stir fried rice with chicken', available: true },
+    // Drinks
+    { itemId: 'menu_13', name: 'Coca Cola', category: 'drinks', price: 40, description: '300ml bottle', available: true },
+    { itemId: 'menu_14', name: 'Sprite', category: 'drinks', price: 40, description: '300ml bottle', available: true },
+    { itemId: 'menu_15', name: 'Mango Lassi', category: 'drinks', price: 60, description: 'Sweet mango yogurt drink', available: true },
+    { itemId: 'menu_16', name: 'Fresh Lime Soda', category: 'drinks', price: 50, description: 'Refreshing lime soda', available: true },
+    { itemId: 'menu_17', name: 'Mineral Water', category: 'drinks', price: 20, description: '500ml bottle', available: true },
+    // Desserts
+    { itemId: 'menu_18', name: 'Gulab Jamun', category: 'desserts', price: 60, description: '2 pieces with sugar syrup', available: true },
+    { itemId: 'menu_19', name: 'Ice Cream', category: 'desserts', price: 80, description: 'Vanilla/Chocolate/Strawberry', available: true },
+    { itemId: 'menu_20', name: 'Kheer', category: 'desserts', price: 70, description: 'Rice pudding with nuts', available: true },
+];
 
 // Default Games Data
 const DEFAULT_GAMES = [
@@ -160,6 +195,155 @@ const createTables = async () => {
         await waitForTable(TABLES.BOOKINGS);
     } else {
         console.log(`✓ Table ${TABLES.BOOKINGS} already exists`);
+    }
+
+    // 4. Menu Items Table
+    if (!(await tableExists(TABLES.MENU_ITEMS))) {
+        console.log(`📦 Creating table: ${TABLES.MENU_ITEMS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.MENU_ITEMS,
+            KeySchema: [
+                { AttributeName: 'itemId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'itemId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.MENU_ITEMS);
+
+        // Initialize with default menu items
+        console.log('📝 Inserting default menu items...');
+        for (const item of DEFAULT_MENU_ITEMS) {
+            await docClient.send(new PutCommand({
+                TableName: TABLES.MENU_ITEMS,
+                Item: item,
+            }));
+        }
+        console.log(`✓ Inserted ${DEFAULT_MENU_ITEMS.length} default menu items`);
+    } else {
+        console.log(`✓ Table ${TABLES.MENU_ITEMS} already exists`);
+    }
+
+    // 5. Combos Table
+    if (!(await tableExists(TABLES.COMBOS))) {
+        console.log(`📦 Creating table: ${TABLES.COMBOS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.COMBOS,
+            KeySchema: [
+                { AttributeName: 'comboId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'comboId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.COMBOS);
+    } else {
+        console.log(`✓ Table ${TABLES.COMBOS} already exists`);
+    }
+
+    // 6. Restaurant Orders Table
+    if (!(await tableExists(TABLES.RESTAURANT_ORDERS))) {
+        console.log(`📦 Creating table: ${TABLES.RESTAURANT_ORDERS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.RESTAURANT_ORDERS,
+            KeySchema: [
+                { AttributeName: 'orderId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'orderId', AttributeType: 'S' },
+                { AttributeName: 'customerId', AttributeType: 'S' },
+                { AttributeName: 'timestamp', AttributeType: 'S' },
+            ],
+            GlobalSecondaryIndexes: [
+                {
+                    IndexName: 'customerId-timestamp-index',
+                    KeySchema: [
+                        { AttributeName: 'customerId', KeyType: 'HASH' },
+                        { AttributeName: 'timestamp', KeyType: 'RANGE' },
+                    ],
+                    Projection: { ProjectionType: 'ALL' },
+                    ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+                },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.RESTAURANT_ORDERS);
+    } else {
+        console.log(`✓ Table ${TABLES.RESTAURANT_ORDERS} already exists`);
+    }
+
+    // Bakery Items Table
+    if (!(await tableExists(TABLES.BAKERY_ITEMS))) {
+        console.log(`Creating table: ${TABLES.BAKERY_ITEMS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.BAKERY_ITEMS,
+            KeySchema: [
+                { AttributeName: 'itemId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'itemId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.BAKERY_ITEMS);
+    } else {
+        console.log(`✓ Table ${TABLES.BAKERY_ITEMS} already exists`);
+    }
+
+    // Bakery Orders Table
+    if (!(await tableExists(TABLES.BAKERY_ORDERS))) {
+        console.log(`Creating table: ${TABLES.BAKERY_ORDERS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.BAKERY_ORDERS,
+            KeySchema: [
+                { AttributeName: 'orderId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'orderId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.BAKERY_ORDERS);
+    } else {
+        console.log(`✓ Table ${TABLES.BAKERY_ORDERS} already exists`);
+    }
+
+    // Juice Items Table
+    if (!(await tableExists(TABLES.JUICE_ITEMS))) {
+        console.log(`Creating table: ${TABLES.JUICE_ITEMS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.JUICE_ITEMS,
+            KeySchema: [
+                { AttributeName: 'itemId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'itemId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.JUICE_ITEMS);
+    } else {
+        console.log(`✓ Table ${TABLES.JUICE_ITEMS} already exists`);
+    }
+
+    // Juice Orders Table
+    if (!(await tableExists(TABLES.JUICE_ORDERS))) {
+        console.log(`Creating table: ${TABLES.JUICE_ORDERS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.JUICE_ORDERS,
+            KeySchema: [
+                { AttributeName: 'orderId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'orderId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.JUICE_ORDERS);
+    } else {
+        console.log(`✓ Table ${TABLES.JUICE_ORDERS} already exists`);
     }
 
     console.log('\n✅ All tables ready!');
@@ -359,6 +543,344 @@ const getCustomerBookings = async (customerId) => {
     return response.Items || [];
 };
 
+// ============= MENU ITEM OPERATIONS =============
+
+const createMenuItem = async (item) => {
+    const menuItem = {
+        ...item,
+        createdAt: new Date().toISOString(),
+        available: item.available !== false,
+    };
+    await docClient.send(new PutCommand({
+        TableName: TABLES.MENU_ITEMS,
+        Item: menuItem,
+    }));
+    return menuItem;
+};
+
+const getMenuItemById = async (itemId) => {
+    const response = await docClient.send(new GetCommand({
+        TableName: TABLES.MENU_ITEMS,
+        Key: { itemId },
+    }));
+    return response.Item;
+};
+
+const getAllMenuItems = async () => {
+    const response = await docClient.send(new ScanCommand({
+        TableName: TABLES.MENU_ITEMS,
+    }));
+    return response.Items || [];
+};
+
+const updateMenuItem = async (itemId, updates) => {
+    const updateExpressions = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    Object.keys(updates).forEach((key, index) => {
+        updateExpressions.push(`#attr${index} = :val${index}`);
+        expressionAttributeNames[`#attr${index}`] = key;
+        expressionAttributeValues[`:val${index}`] = updates[key];
+    });
+
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.MENU_ITEMS,
+        Key: { itemId },
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+};
+
+const deleteMenuItem = async (itemId) => {
+    await docClient.send(new DeleteCommand({
+        TableName: TABLES.MENU_ITEMS,
+        Key: { itemId },
+    }));
+};
+
+// ============= COMBO OPERATIONS =============
+
+const createCombo = async (combo) => {
+    const comboItem = {
+        ...combo,
+        createdAt: new Date().toISOString(),
+        active: combo.active !== false,
+    };
+    await docClient.send(new PutCommand({
+        TableName: TABLES.COMBOS,
+        Item: comboItem,
+    }));
+    return comboItem;
+};
+
+const getComboById = async (comboId) => {
+    const response = await docClient.send(new GetCommand({
+        TableName: TABLES.COMBOS,
+        Key: { comboId },
+    }));
+    return response.Item;
+};
+
+const getAllCombos = async () => {
+    const response = await docClient.send(new ScanCommand({
+        TableName: TABLES.COMBOS,
+    }));
+    return response.Items || [];
+};
+
+const updateCombo = async (comboId, updates) => {
+    const updateExpressions = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    Object.keys(updates).forEach((key, index) => {
+        updateExpressions.push(`#attr${index} = :val${index}`);
+        expressionAttributeNames[`#attr${index}`] = key;
+        expressionAttributeValues[`:val${index}`] = updates[key];
+    });
+
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.COMBOS,
+        Key: { comboId },
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+};
+
+const deleteCombo = async (comboId) => {
+    await docClient.send(new DeleteCommand({
+        TableName: TABLES.COMBOS,
+        Key: { comboId },
+    }));
+};
+
+// ============= RESTAURANT ORDER OPERATIONS =============
+
+const createRestaurantOrder = async (order) => {
+    const orderItem = {
+        ...order,
+        timestamp: new Date().toISOString(),
+        status: order.status || 'pending', // pending, preparing, ready, served
+    };
+    await docClient.send(new PutCommand({
+        TableName: TABLES.RESTAURANT_ORDERS,
+        Item: orderItem,
+    }));
+    return orderItem;
+};
+
+const getRestaurantOrderById = async (orderId) => {
+    const response = await docClient.send(new GetCommand({
+        TableName: TABLES.RESTAURANT_ORDERS,
+        Key: { orderId },
+    }));
+    return response.Item;
+};
+
+const getAllRestaurantOrders = async () => {
+    const response = await docClient.send(new ScanCommand({
+        TableName: TABLES.RESTAURANT_ORDERS,
+    }));
+    // Sort by timestamp descending
+    return (response.Items || []).sort((a, b) =>
+        new Date(b.timestamp) - new Date(a.timestamp)
+    );
+};
+
+const getCustomerRestaurantOrders = async (customerId) => {
+    const response = await docClient.send(new QueryCommand({
+        TableName: TABLES.RESTAURANT_ORDERS,
+        IndexName: 'customerId-timestamp-index',
+        KeyConditionExpression: 'customerId = :customerId',
+        ExpressionAttributeValues: { ':customerId': customerId },
+        ScanIndexForward: false,
+    }));
+    return response.Items || [];
+};
+
+const updateRestaurantOrderStatus = async (orderId, status) => {
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.RESTAURANT_ORDERS,
+        Key: { orderId },
+        UpdateExpression: 'SET #status = :status',
+        ExpressionAttributeNames: { '#status': 'status' },
+        ExpressionAttributeValues: { ':status': status },
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+};
+
+// ============= BAKERY ITEM OPERATIONS =============
+
+const createBakeryItem = async (item) => {
+    const now = new Date().toISOString();
+    const newItem = {
+        ...item,
+        createdAt: now,
+        updatedAt: now,
+    };
+    await docClient.send(new PutCommand({ TableName: TABLES.BAKERY_ITEMS, Item: newItem }));
+    return newItem;
+};
+
+const getBakeryItemById = async (itemId) => {
+    const response = await docClient.send(new GetCommand({ TableName: TABLES.BAKERY_ITEMS, Key: { itemId } }));
+    return response.Item;
+};
+
+const getAllBakeryItems = async () => {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.BAKERY_ITEMS }));
+    return response.Items || [];
+};
+
+const updateBakeryItem = async (itemId, updates) => {
+    const updateExpressions = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    Object.entries(updates).forEach(([key, value]) => {
+        updateExpressions.push(`#${key} = :${key}`);
+        expressionAttributeNames[`#${key}`] = key;
+        expressionAttributeValues[`:${key}`] = value;
+    });
+
+    expressionAttributeValues[':updatedAt'] = new Date().toISOString();
+    updateExpressions.push('#updatedAt = :updatedAt');
+    expressionAttributeNames['#updatedAt'] = 'updatedAt';
+
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.BAKERY_ITEMS,
+        Key: { itemId },
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+};
+
+const deleteBakeryItem = async (itemId) => {
+    await docClient.send(new DeleteCommand({ TableName: TABLES.BAKERY_ITEMS, Key: { itemId } }));
+    return { deleted: true, itemId };
+};
+
+// ============= BAKERY ORDER OPERATIONS =============
+
+const createBakeryOrder = async (order) => {
+    const now = new Date().toISOString();
+    const newOrder = {
+        ...order,
+        status: 'pending',
+        createdAt: now,
+        updatedAt: now,
+    };
+    await docClient.send(new PutCommand({ TableName: TABLES.BAKERY_ORDERS, Item: newOrder }));
+    return newOrder;
+};
+
+const getAllBakeryOrders = async () => {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.BAKERY_ORDERS }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
+const getCustomerBakeryOrders = async (customerId) => {
+    const response = await docClient.send(new ScanCommand({
+        TableName: TABLES.BAKERY_ORDERS,
+        FilterExpression: 'customerId = :customerId',
+        ExpressionAttributeValues: { ':customerId': customerId },
+    }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
+// ============= JUICE ITEM OPERATIONS =============
+
+const createJuiceItem = async (item) => {
+    const now = new Date().toISOString();
+    const newItem = {
+        ...item,
+        createdAt: now,
+        updatedAt: now,
+    };
+    await docClient.send(new PutCommand({ TableName: TABLES.JUICE_ITEMS, Item: newItem }));
+    return newItem;
+};
+
+const getJuiceItemById = async (itemId) => {
+    const response = await docClient.send(new GetCommand({ TableName: TABLES.JUICE_ITEMS, Key: { itemId } }));
+    return response.Item;
+};
+
+const getAllJuiceItems = async () => {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.JUICE_ITEMS }));
+    return response.Items || [];
+};
+
+const updateJuiceItem = async (itemId, updates) => {
+    const updateExpressions = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    Object.entries(updates).forEach(([key, value]) => {
+        updateExpressions.push(`#${key} = :${key}`);
+        expressionAttributeNames[`#${key}`] = key;
+        expressionAttributeValues[`:${key}`] = value;
+    });
+
+    expressionAttributeValues[':updatedAt'] = new Date().toISOString();
+    updateExpressions.push('#updatedAt = :updatedAt');
+    expressionAttributeNames['#updatedAt'] = 'updatedAt';
+
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.JUICE_ITEMS,
+        Key: { itemId },
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+};
+
+const deleteJuiceItem = async (itemId) => {
+    await docClient.send(new DeleteCommand({ TableName: TABLES.JUICE_ITEMS, Key: { itemId } }));
+    return { deleted: true, itemId };
+};
+
+// ============= JUICE ORDER OPERATIONS =============
+
+const createJuiceOrder = async (order) => {
+    const now = new Date().toISOString();
+    const newOrder = {
+        ...order,
+        status: 'pending',
+        createdAt: now,
+        updatedAt: now,
+    };
+    await docClient.send(new PutCommand({ TableName: TABLES.JUICE_ORDERS, Item: newOrder }));
+    return newOrder;
+};
+
+const getAllJuiceOrders = async () => {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.JUICE_ORDERS }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
+const getCustomerJuiceOrders = async (customerId) => {
+    const response = await docClient.send(new ScanCommand({
+        TableName: TABLES.JUICE_ORDERS,
+        FilterExpression: 'customerId = :customerId',
+        ExpressionAttributeValues: { ':customerId': customerId },
+    }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
 module.exports = {
     createTables,
     TABLES,
@@ -382,4 +904,43 @@ module.exports = {
     getBookingById,
     getAllBookings,
     getCustomerBookings,
+    // Menu Items
+    createMenuItem,
+    getMenuItemById,
+    getAllMenuItems,
+    updateMenuItem,
+    deleteMenuItem,
+    // Combos
+    createCombo,
+    getComboById,
+    getAllCombos,
+    updateCombo,
+    deleteCombo,
+    // Restaurant Orders
+    createRestaurantOrder,
+    getRestaurantOrderById,
+    getAllRestaurantOrders,
+    getCustomerRestaurantOrders,
+    updateRestaurantOrderStatus,
+    // Bakery Items
+    createBakeryItem,
+    getBakeryItemById,
+    getAllBakeryItems,
+    updateBakeryItem,
+    deleteBakeryItem,
+    // Bakery Orders
+    createBakeryOrder,
+    getAllBakeryOrders,
+    getCustomerBakeryOrders,
+    // Juice Items
+    createJuiceItem,
+    getJuiceItemById,
+    getAllJuiceItems,
+    updateJuiceItem,
+    deleteJuiceItem,
+    // Juice Orders
+    createJuiceOrder,
+    getAllJuiceOrders,
+    getCustomerJuiceOrders,
 };
+
