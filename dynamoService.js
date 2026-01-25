@@ -25,6 +25,10 @@ const TABLES = {
     BAKERY_ORDERS: 'JamJamBakeryOrders',
     JUICE_ITEMS: 'JamJamJuiceItems',
     JUICE_ORDERS: 'JamJamJuiceOrders',
+    MASSAGE_ITEMS: 'JamJamMassageItems',
+    MASSAGE_ORDERS: 'JamJamMassageOrders',
+    POOL_TYPES: 'JamJamPoolTypes',
+    POOL_ORDERS: 'JamJamPoolOrders',
 };
 
 // Default Menu Items
@@ -344,6 +348,92 @@ const createTables = async () => {
         await waitForTable(TABLES.JUICE_ORDERS);
     } else {
         console.log(`✓ Table ${TABLES.JUICE_ORDERS} already exists`);
+    }
+
+    // Massage Items Table
+    if (!(await tableExists(TABLES.MASSAGE_ITEMS))) {
+        console.log(`Creating table: ${TABLES.MASSAGE_ITEMS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.MASSAGE_ITEMS,
+            KeySchema: [
+                { AttributeName: 'itemId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'itemId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.MASSAGE_ITEMS);
+    } else {
+        console.log(`✓ Table ${TABLES.MASSAGE_ITEMS} already exists`);
+    }
+
+    // Massage Orders Table
+    if (!(await tableExists(TABLES.MASSAGE_ORDERS))) {
+        console.log(`Creating table: ${TABLES.MASSAGE_ORDERS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.MASSAGE_ORDERS,
+            KeySchema: [
+                { AttributeName: 'orderId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'orderId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.MASSAGE_ORDERS);
+    } else {
+        console.log(`✓ Table ${TABLES.MASSAGE_ORDERS} already exists`);
+    }
+
+    // Pool Types Table
+    if (!(await tableExists(TABLES.POOL_TYPES))) {
+        console.log(`Creating table: ${TABLES.POOL_TYPES}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.POOL_TYPES,
+            KeySchema: [
+                { AttributeName: 'typeId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'typeId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.POOL_TYPES);
+
+        // Initialize with default pool types
+        console.log('📝 Inserting default pool types...');
+        const defaultPoolTypes = [
+            { typeId: 'pool_type_1', name: 'Kids Pool', description: 'For children aged 4-12 years', ageRange: '4-12', price: 150, icon: 'human-child' },
+            { typeId: 'pool_type_2', name: 'Adults Pool', description: 'For ages 12 and above', ageRange: '12+', price: 200, icon: 'swim' },
+        ];
+        for (const poolType of defaultPoolTypes) {
+            await docClient.send(new PutCommand({
+                TableName: TABLES.POOL_TYPES,
+                Item: { ...poolType, createdAt: new Date().toISOString() },
+            }));
+        }
+        console.log('✓ Inserted 2 default pool types');
+    } else {
+        console.log(`✓ Table ${TABLES.POOL_TYPES} already exists`);
+    }
+
+    // Pool Orders Table
+    if (!(await tableExists(TABLES.POOL_ORDERS))) {
+        console.log(`Creating table: ${TABLES.POOL_ORDERS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.POOL_ORDERS,
+            KeySchema: [
+                { AttributeName: 'orderId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'orderId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.POOL_ORDERS);
+    } else {
+        console.log(`✓ Table ${TABLES.POOL_ORDERS} already exists`);
     }
 
     console.log('\n✅ All tables ready!');
@@ -881,6 +971,166 @@ const getCustomerJuiceOrders = async (customerId) => {
     return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 };
 
+// ============= MASSAGE ITEM OPERATIONS =============
+
+const createMassageItem = async (item) => {
+    const now = new Date().toISOString();
+    const newItem = {
+        ...item,
+        createdAt: now,
+        updatedAt: now,
+    };
+    await docClient.send(new PutCommand({ TableName: TABLES.MASSAGE_ITEMS, Item: newItem }));
+    return newItem;
+};
+
+const getMassageItemById = async (itemId) => {
+    const response = await docClient.send(new GetCommand({ TableName: TABLES.MASSAGE_ITEMS, Key: { itemId } }));
+    return response.Item;
+};
+
+const getAllMassageItems = async () => {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.MASSAGE_ITEMS }));
+    return response.Items || [];
+};
+
+const updateMassageItem = async (itemId, updates) => {
+    const updateExpressions = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    Object.entries(updates).forEach(([key, value]) => {
+        updateExpressions.push(`#${key} = :${key}`);
+        expressionAttributeNames[`#${key}`] = key;
+        expressionAttributeValues[`:${key}`] = value;
+    });
+
+    expressionAttributeValues[':updatedAt'] = new Date().toISOString();
+    updateExpressions.push('#updatedAt = :updatedAt');
+    expressionAttributeNames['#updatedAt'] = 'updatedAt';
+
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.MASSAGE_ITEMS,
+        Key: { itemId },
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+};
+
+const deleteMassageItem = async (itemId) => {
+    await docClient.send(new DeleteCommand({ TableName: TABLES.MASSAGE_ITEMS, Key: { itemId } }));
+    return { deleted: true, itemId };
+};
+
+// ============= MASSAGE ORDER OPERATIONS =============
+
+const createMassageOrder = async (order) => {
+    const now = new Date().toISOString();
+    const newOrder = {
+        ...order,
+        status: 'pending',
+        createdAt: now,
+        updatedAt: now,
+    };
+    await docClient.send(new PutCommand({ TableName: TABLES.MASSAGE_ORDERS, Item: newOrder }));
+    return newOrder;
+};
+
+const getAllMassageOrders = async () => {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.MASSAGE_ORDERS }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
+const getCustomerMassageOrders = async (customerId) => {
+    const response = await docClient.send(new ScanCommand({
+        TableName: TABLES.MASSAGE_ORDERS,
+        FilterExpression: 'customerId = :customerId',
+        ExpressionAttributeValues: { ':customerId': customerId },
+    }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
+// ============= POOL TYPE OPERATIONS =============
+
+const createPoolType = async (item) => {
+    const now = new Date().toISOString();
+    const newItem = {
+        ...item,
+        createdAt: now,
+        updatedAt: now,
+    };
+    await docClient.send(new PutCommand({ TableName: TABLES.POOL_TYPES, Item: newItem }));
+    return newItem;
+};
+
+const getAllPoolTypes = async () => {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.POOL_TYPES }));
+    return response.Items || [];
+};
+
+const updatePoolType = async (typeId, updates) => {
+    const updateExpressions = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    Object.entries(updates).forEach(([key, value]) => {
+        updateExpressions.push(`#${key} = :${key}`);
+        expressionAttributeNames[`#${key}`] = key;
+        expressionAttributeValues[`:${key}`] = value;
+    });
+
+    expressionAttributeValues[':updatedAt'] = new Date().toISOString();
+    updateExpressions.push('#updatedAt = :updatedAt');
+    expressionAttributeNames['#updatedAt'] = 'updatedAt';
+
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.POOL_TYPES,
+        Key: { typeId },
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+};
+
+const deletePoolType = async (typeId) => {
+    await docClient.send(new DeleteCommand({ TableName: TABLES.POOL_TYPES, Key: { typeId } }));
+    return { deleted: true, typeId };
+};
+
+// ============= POOL ORDER OPERATIONS =============
+
+const createPoolOrder = async (order) => {
+    const now = new Date().toISOString();
+    const newOrder = {
+        ...order,
+        status: 'confirmed',
+        timestamp: now,
+        createdAt: now,
+        updatedAt: now,
+    };
+    await docClient.send(new PutCommand({ TableName: TABLES.POOL_ORDERS, Item: newOrder }));
+    return newOrder;
+};
+
+const getAllPoolOrders = async () => {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.POOL_ORDERS }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
+const getCustomerPoolOrders = async (customerId) => {
+    const response = await docClient.send(new ScanCommand({
+        TableName: TABLES.POOL_ORDERS,
+        FilterExpression: 'customerId = :customerId',
+        ExpressionAttributeValues: { ':customerId': customerId },
+    }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
 module.exports = {
     createTables,
     TABLES,
@@ -942,5 +1192,24 @@ module.exports = {
     createJuiceOrder,
     getAllJuiceOrders,
     getCustomerJuiceOrders,
+    // Massage Items
+    createMassageItem,
+    getMassageItemById,
+    getAllMassageItems,
+    updateMassageItem,
+    deleteMassageItem,
+    // Massage Orders
+    createMassageOrder,
+    getAllMassageOrders,
+    getCustomerMassageOrders,
+    // Pool Types
+    createPoolType,
+    getAllPoolTypes,
+    updatePoolType,
+    deletePoolType,
+    // Pool Orders
+    createPoolOrder,
+    getAllPoolOrders,
+    getCustomerPoolOrders,
 };
 

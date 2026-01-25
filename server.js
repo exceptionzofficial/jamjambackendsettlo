@@ -59,6 +59,22 @@ const {
     // Juice Orders
     createJuiceOrder,
     getCustomerJuiceOrders,
+    // Massage Items
+    createMassageItem,
+    getAllMassageItems,
+    updateMassageItem,
+    deleteMassageItem,
+    // Massage Orders
+    createMassageOrder,
+    getCustomerMassageOrders,
+    // Pool Types
+    createPoolType,
+    getAllPoolTypes,
+    updatePoolType,
+    deletePoolType,
+    // Pool Orders
+    createPoolOrder,
+    getCustomerPoolOrders,
 } = require('./dynamoService');
 
 const app = express();
@@ -655,6 +671,152 @@ app.get('/api/juice-orders/customer/:customerId', async (req, res) => {
     } catch (error) {
         console.error('Error getting juice orders:', error);
         res.status(500).json({ error: 'Failed to get juice orders' });
+    }
+});
+
+// ============= MASSAGE ITEMS ROUTES =============
+
+// Get all massage items
+app.get('/api/massage-items', async (req, res) => {
+    try {
+        const items = await getAllMassageItems();
+        res.json(items);
+    } catch (error) {
+        console.error('Error getting massage items:', error);
+        res.status(500).json({ error: 'Failed to get massage items' });
+    }
+});
+
+// Create massage item
+app.post('/api/massage-items', async (req, res) => {
+    try {
+        const itemId = `massage_${uuidv4().slice(0, 8)}`;
+        const item = await createMassageItem({ ...req.body, itemId });
+        res.status(201).json(item);
+    } catch (error) {
+        console.error('Error adding massage item:', error);
+        res.status(500).json({ error: 'Failed to add massage item' });
+    }
+});
+
+// Update massage item
+app.put('/api/massage-items/:id', async (req, res) => {
+    try {
+        const updates = req.body;
+        delete updates.itemId;
+        const item = await updateMassageItem(req.params.id, updates);
+        res.json(item);
+    } catch (error) {
+        console.error('Error updating massage item:', error);
+        res.status(500).json({ error: 'Failed to update massage item' });
+    }
+});
+
+// Delete massage item
+app.delete('/api/massage-items/:id', async (req, res) => {
+    try {
+        await deleteMassageItem(req.params.id);
+        res.json({ deleted: true });
+    } catch (error) {
+        console.error('Error deleting massage item:', error);
+        res.status(500).json({ error: 'Failed to delete massage item' });
+    }
+});
+
+// ============= MASSAGE ORDERS ROUTES =============
+
+// Create massage order
+app.post('/api/massage-orders', async (req, res) => {
+    try {
+        const orderId = `massage_order_${uuidv4().slice(0, 8)}`;
+        const order = await createMassageOrder({ ...req.body, orderId });
+        res.status(201).json(order);
+    } catch (error) {
+        console.error('Error creating massage order:', error);
+        res.status(500).json({ error: 'Failed to create massage order' });
+    }
+});
+
+// Get orders by customer
+app.get('/api/massage-orders/customer/:customerId', async (req, res) => {
+    try {
+        const orders = await getCustomerMassageOrders(req.params.customerId);
+        res.json(orders);
+    } catch (error) {
+        console.error('Error getting massage orders:', error);
+        res.status(500).json({ error: 'Failed to get massage orders' });
+    }
+});
+
+// ============= POOL TYPES ROUTES =============
+
+// Get all pool types
+app.get('/api/pool-types', async (req, res) => {
+    try {
+        const types = await getAllPoolTypes();
+        res.json(types.map(t => ({ ...t, id: t.typeId })));
+    } catch (error) {
+        console.error('Error getting pool types:', error);
+        res.status(500).json({ error: 'Failed to get pool types' });
+    }
+});
+
+// Add pool type
+app.post('/api/pool-types', async (req, res) => {
+    try {
+        const typeId = `pool_type_${uuidv4().slice(0, 8)}`;
+        const poolType = await createPoolType({ ...req.body, typeId });
+        res.status(201).json({ ...poolType, id: poolType.typeId });
+    } catch (error) {
+        console.error('Error creating pool type:', error);
+        res.status(500).json({ error: 'Failed to create pool type' });
+    }
+});
+
+// Update pool type
+app.put('/api/pool-types/:id', async (req, res) => {
+    try {
+        const poolType = await updatePoolType(req.params.id, req.body);
+        res.json({ ...poolType, id: poolType.typeId });
+    } catch (error) {
+        console.error('Error updating pool type:', error);
+        res.status(500).json({ error: 'Failed to update pool type' });
+    }
+});
+
+// Delete pool type
+app.delete('/api/pool-types/:id', async (req, res) => {
+    try {
+        await deletePoolType(req.params.id);
+        res.json({ deleted: true });
+    } catch (error) {
+        console.error('Error deleting pool type:', error);
+        res.status(500).json({ error: 'Failed to delete pool type' });
+    }
+});
+
+// ============= POOL ORDERS ROUTES =============
+
+// Create pool order
+app.post('/api/pool-orders', async (req, res) => {
+    try {
+        const orderId = `pool_order_${uuidv4().slice(0, 8)}`;
+        const order = await createPoolOrder({ ...req.body, orderId });
+        res.status(201).json(order);
+    } catch (error) {
+        console.error('Error creating pool order:', error);
+        res.status(500).json({ error: 'Failed to create pool order' });
+    }
+});
+
+// Get orders by customer
+app.get('/api/pool-orders/customer/:customerId', async (req, res) => {
+    try {
+        const orders = await getCustomerPoolOrders(req.params.customerId);
+        res.json(orders);
+    } catch (error) {
+        console.error('Error getting pool orders:', error);
+        res.status(500).json({ error: 'Failed to get pool orders' });
     }
 });
 
