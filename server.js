@@ -75,6 +75,13 @@ const {
     // Pool Orders
     createPoolOrder,
     getCustomerPoolOrders,
+    // Tax Settings
+    getAllTaxSettings,
+    getTaxSettingByService,
+    updateTaxSetting,
+    // Admin Analytics
+    getAdminDashboardStats,
+    getAllOrdersForAdmin,
 } = require('./dynamoService');
 
 const app = express();
@@ -817,6 +824,79 @@ app.get('/api/pool-orders/customer/:customerId', async (req, res) => {
     } catch (error) {
         console.error('Error getting pool orders:', error);
         res.status(500).json({ error: 'Failed to get pool orders' });
+    }
+});
+
+// ============= TAX SETTINGS ROUTES =============
+
+// Get all tax settings
+app.get('/api/tax-settings', async (req, res) => {
+    try {
+        const settings = await getAllTaxSettings();
+        res.json(settings);
+    } catch (error) {
+        console.error('Error getting tax settings:', error);
+        res.status(500).json({ error: 'Failed to get tax settings' });
+    }
+});
+
+// Get tax setting by service
+app.get('/api/tax-settings/:serviceId', async (req, res) => {
+    try {
+        const setting = await getTaxSettingByService(req.params.serviceId);
+        if (!setting) {
+            return res.status(404).json({ error: 'Tax setting not found' });
+        }
+        res.json(setting);
+    } catch (error) {
+        console.error('Error getting tax setting:', error);
+        res.status(500).json({ error: 'Failed to get tax setting' });
+    }
+});
+
+// Update tax setting
+app.put('/api/tax-settings/:serviceId', async (req, res) => {
+    try {
+        const { taxPercent } = req.body;
+        if (taxPercent === undefined || isNaN(Number(taxPercent))) {
+            return res.status(400).json({ error: 'Valid taxPercent required' });
+        }
+        const setting = await updateTaxSetting(req.params.serviceId, Number(taxPercent));
+        res.json(setting);
+    } catch (error) {
+        console.error('Error updating tax setting:', error);
+        res.status(500).json({ error: 'Failed to update tax setting' });
+    }
+});
+
+// ============= ADMIN ANALYTICS ROUTES =============
+
+// Get dashboard stats
+app.get('/api/admin/dashboard', async (req, res) => {
+    try {
+        const stats = await getAdminDashboardStats();
+        res.json(stats);
+    } catch (error) {
+        console.error('Error getting dashboard stats:', error);
+        res.status(500).json({ error: 'Failed to get dashboard stats' });
+    }
+});
+
+// Get all orders for admin with date filters
+app.get('/api/admin/orders', async (req, res) => {
+    try {
+        const { startDate, endDate, service } = req.query;
+        let orders = await getAllOrdersForAdmin(startDate, endDate);
+
+        // Filter by service if provided
+        if (service && service !== 'all') {
+            orders = orders.filter(o => o.service.toLowerCase() === service.toLowerCase());
+        }
+
+        res.json(orders);
+    } catch (error) {
+        console.error('Error getting admin orders:', error);
+        res.status(500).json({ error: 'Failed to get orders' });
     }
 });
 

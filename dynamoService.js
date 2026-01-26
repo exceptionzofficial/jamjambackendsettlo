@@ -29,6 +29,7 @@ const TABLES = {
     MASSAGE_ORDERS: 'JamJamMassageOrders',
     POOL_TYPES: 'JamJamPoolTypes',
     POOL_ORDERS: 'JamJamPoolOrders',
+    TAX_SETTINGS: 'JamJamTaxSettings',
 };
 
 // Default Menu Items
@@ -434,6 +435,42 @@ const createTables = async () => {
         await waitForTable(TABLES.POOL_ORDERS);
     } else {
         console.log(`✓ Table ${TABLES.POOL_ORDERS} already exists`);
+    }
+
+    // Tax Settings Table
+    if (!(await tableExists(TABLES.TAX_SETTINGS))) {
+        console.log(`Creating table: ${TABLES.TAX_SETTINGS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.TAX_SETTINGS,
+            KeySchema: [
+                { AttributeName: 'serviceId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'serviceId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.TAX_SETTINGS);
+
+        // Initialize with default tax rates
+        console.log('📝 Inserting default tax settings...');
+        const defaultTaxSettings = [
+            { serviceId: 'games', serviceName: 'Games', taxPercent: 0, description: 'Game Zone' },
+            { serviceId: 'restaurant', serviceName: 'Restaurant', taxPercent: 5, description: 'Food & Dining' },
+            { serviceId: 'bakery', serviceName: 'Bakery', taxPercent: 5, description: 'Bakery Items' },
+            { serviceId: 'juice', serviceName: 'Juice Bar', taxPercent: 5, description: 'Fresh Juices' },
+            { serviceId: 'massage', serviceName: 'Massage', taxPercent: 18, description: 'Spa & Massage' },
+            { serviceId: 'pool', serviceName: 'Pool', taxPercent: 18, description: 'Swimming Pool' },
+        ];
+        for (const setting of defaultTaxSettings) {
+            await docClient.send(new PutCommand({
+                TableName: TABLES.TAX_SETTINGS,
+                Item: { ...setting, updatedAt: new Date().toISOString() },
+            }));
+        }
+        console.log('✓ Inserted 6 default tax settings');
+    } else {
+        console.log(`✓ Table ${TABLES.TAX_SETTINGS} already exists`);
     }
 
     console.log('\n✅ All tables ready!');
@@ -1131,6 +1168,149 @@ const getCustomerPoolOrders = async (customerId) => {
     return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 };
 
+// ============= TAX SETTINGS OPERATIONS =============
+
+const getAllTaxSettings = async () => {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.TAX_SETTINGS }));
+    return response.Items || [];
+};
+
+const getTaxSettingByService = async (serviceId) => {
+    const response = await docClient.send(new GetCommand({
+        TableName: TABLES.TAX_SETTINGS,
+        Key: { serviceId },
+    }));
+    return response.Item;
+};
+
+const updateTaxSetting = async (serviceId, taxPercent) => {
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.TAX_SETTINGS,
+        Key: { serviceId },
+        UpdateExpression: 'SET taxPercent = :taxPercent, updatedAt = :updatedAt',
+        ExpressionAttributeValues: {
+            ':taxPercent': taxPercent,
+            ':updatedAt': new Date().toISOString(),
+        },
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+};
+
+// ============= ADMIN ANALYTICS OPERATIONS =============
+
+const getAdminDashboardStats = async () => {
+    // Fetch all orders from all services
+    const [
+        bookings,
+        restaurantOrders,
+        bakeryOrders,
+        juiceOrders,
+        massageOrders,
+        poolOrders,
+    ] = await Promise.all([
+        docClient.send(new ScanCommand({ TableName: TABLES.BOOKINGS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.RESTAURANT_ORDERS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.BAKERY_ORDERS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.JUICE_ORDERS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.MASSAGE_ORDERS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.POOL_ORDERS })),
+    ]);
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const yearStart = new Date(now.getFullYear(), 0, 1).toISOString();
+
+    const allOrders = [
+        ...(bookings.Items || []).map(o => ({ ...o, service: 'Games', amount: o.totalAmount || 0 })),
+        ...(restaurantOrders.Items || []).map(o => ({ ...o, service: 'Restaurant', amount: o.totalAmount || 0 })),
+        ...(bakeryOrders.Items || []).map(o => ({ ...o, service: 'Bakery', amount: o.totalAmount || 0 })),
+        ...(juiceOrders.Items || []).map(o => ({ ...o, service: 'Juice', amount: o.totalAmount || 0 })),
+        ...(massageOrders.Items || []).map(o => ({ ...o, service: 'Massage', amount: o.totalAmount || 0 })),
+        ...(poolOrders.Items || []).map(o => ({ ...o, service: 'Pool', amount: o.totalAmount || 0 })),
+    ];
+
+    const calculateRevenue = (orders, startDate) => {
+        return orders
+            .filter(o => o.createdAt >= startDate)
+            .reduce((sum, o) => sum + (o.amount || 0), 0);
+    };
+
+    const calculateByService = (orders, startDate) => {
+        const filtered = orders.filter(o => o.createdAt >= startDate);
+        const byService = {};
+        filtered.forEach(o => {
+            byService[o.service] = (byService[o.service] || 0) + (o.amount || 0);
+        });
+        return byService;
+    };
+
+    return {
+        today: {
+            revenue: calculateRevenue(allOrders, todayStart),
+            orderCount: allOrders.filter(o => o.createdAt >= todayStart).length,
+            byService: calculateByService(allOrders, todayStart),
+        },
+        week: {
+            revenue: calculateRevenue(allOrders, weekStart),
+            orderCount: allOrders.filter(o => o.createdAt >= weekStart).length,
+            byService: calculateByService(allOrders, weekStart),
+        },
+        month: {
+            revenue: calculateRevenue(allOrders, monthStart),
+            orderCount: allOrders.filter(o => o.createdAt >= monthStart).length,
+            byService: calculateByService(allOrders, monthStart),
+        },
+        year: {
+            revenue: calculateRevenue(allOrders, yearStart),
+            orderCount: allOrders.filter(o => o.createdAt >= yearStart).length,
+            byService: calculateByService(allOrders, yearStart),
+        },
+        totalOrders: allOrders.length,
+    };
+};
+
+const getAllOrdersForAdmin = async (startDate, endDate) => {
+    // Fetch all orders from all services
+    const [
+        bookings,
+        restaurantOrders,
+        bakeryOrders,
+        juiceOrders,
+        massageOrders,
+        poolOrders,
+    ] = await Promise.all([
+        docClient.send(new ScanCommand({ TableName: TABLES.BOOKINGS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.RESTAURANT_ORDERS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.BAKERY_ORDERS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.JUICE_ORDERS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.MASSAGE_ORDERS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.POOL_ORDERS })),
+    ]);
+
+    let allOrders = [
+        ...(bookings.Items || []).map(o => ({ ...o, service: 'Games', orderId: o.bookingId })),
+        ...(restaurantOrders.Items || []).map(o => ({ ...o, service: 'Restaurant' })),
+        ...(bakeryOrders.Items || []).map(o => ({ ...o, service: 'Bakery' })),
+        ...(juiceOrders.Items || []).map(o => ({ ...o, service: 'Juice' })),
+        ...(massageOrders.Items || []).map(o => ({ ...o, service: 'Massage' })),
+        ...(poolOrders.Items || []).map(o => ({ ...o, service: 'Pool' })),
+    ];
+
+    // Filter by date range if provided
+    if (startDate) {
+        allOrders = allOrders.filter(o => o.createdAt >= startDate);
+    }
+    if (endDate) {
+        allOrders = allOrders.filter(o => o.createdAt <= endDate);
+    }
+
+    // Sort by date descending
+    return allOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
 module.exports = {
     createTables,
     TABLES,
@@ -1211,5 +1391,12 @@ module.exports = {
     createPoolOrder,
     getAllPoolOrders,
     getCustomerPoolOrders,
+    // Tax Settings
+    getAllTaxSettings,
+    getTaxSettingByService,
+    updateTaxSetting,
+    // Admin Analytics
+    getAdminDashboardStats,
+    getAllOrdersForAdmin,
 };
 
