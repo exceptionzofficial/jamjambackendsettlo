@@ -43,6 +43,7 @@ const {
     getAllRestaurantOrders,
     getCustomerRestaurantOrders,
     updateRestaurantOrderStatus,
+    updateRestaurantOrderPayment,
     // Bakery Items
     createBakeryItem,
     getAllBakeryItems,
@@ -530,6 +531,18 @@ app.patch('/api/restaurant-orders/:id/status', async (req, res) => {
     } catch (error) {
         console.error('Error updating order status:', error);
         res.status(500).json({ error: 'Failed to update order status' });
+    }
+});
+
+// Update restaurant order payment
+app.patch('/api/restaurant-orders/:id/payment', async (req, res) => {
+    try {
+        const { paymentMethod } = req.body;
+        const updated = await updateRestaurantOrderPayment(req.params.id, paymentMethod);
+        res.json(updated);
+    } catch (error) {
+        console.error('Error updating payment status:', error);
+        res.status(500).json({ error: 'Failed to update payment status' });
     }
 });
 

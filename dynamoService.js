@@ -844,6 +844,17 @@ const updateRestaurantOrderStatus = async (orderId, status) => {
     return response.Attributes;
 };
 
+const updateRestaurantOrderPayment = async (orderId, paymentMethod) => {
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.RESTAURANT_ORDERS,
+        Key: { orderId },
+        UpdateExpression: 'SET paymentMethod = :paymentMethod',
+        ExpressionAttributeValues: { ':paymentMethod': paymentMethod },
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+};
+
 // ============= BAKERY ITEM OPERATIONS =============
 
 const createBakeryItem = async (item) => {
@@ -1352,6 +1363,7 @@ module.exports = {
     getAllRestaurantOrders,
     getCustomerRestaurantOrders,
     updateRestaurantOrderStatus,
+    updateRestaurantOrderPayment,
     // Bakery Items
     createBakeryItem,
     getBakeryItemById,
