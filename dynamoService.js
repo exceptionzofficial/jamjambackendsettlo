@@ -1224,12 +1224,12 @@ const getAdminDashboardStats = async () => {
     const yearStart = new Date(now.getFullYear(), 0, 1).toISOString();
 
     const allOrders = [
-        ...(bookings.Items || []).map(o => ({ ...o, service: 'Games', amount: o.totalAmount || 0 })),
-        ...(restaurantOrders.Items || []).map(o => ({ ...o, service: 'Restaurant', amount: o.totalAmount || 0 })),
-        ...(bakeryOrders.Items || []).map(o => ({ ...o, service: 'Bakery', amount: o.totalAmount || 0 })),
-        ...(juiceOrders.Items || []).map(o => ({ ...o, service: 'Juice', amount: o.totalAmount || 0 })),
-        ...(massageOrders.Items || []).map(o => ({ ...o, service: 'Massage', amount: o.totalAmount || 0 })),
-        ...(poolOrders.Items || []).map(o => ({ ...o, service: 'Pool', amount: o.totalAmount || 0 })),
+        ...(bookings.Items || []).map(o => ({ ...o, service: 'Games', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
+        ...(restaurantOrders.Items || []).map(o => ({ ...o, service: 'Restaurant', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
+        ...(bakeryOrders.Items || []).map(o => ({ ...o, service: 'Bakery', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
+        ...(juiceOrders.Items || []).map(o => ({ ...o, service: 'Juice', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
+        ...(massageOrders.Items || []).map(o => ({ ...o, service: 'Massage', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
+        ...(poolOrders.Items || []).map(o => ({ ...o, service: 'Pool', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
     ];
 
     const calculateRevenue = (orders, startDate) => {
@@ -1291,12 +1291,12 @@ const getAllOrdersForAdmin = async (startDate, endDate) => {
     ]);
 
     let allOrders = [
-        ...(bookings.Items || []).map(o => ({ ...o, service: 'Games', orderId: o.bookingId })),
-        ...(restaurantOrders.Items || []).map(o => ({ ...o, service: 'Restaurant' })),
-        ...(bakeryOrders.Items || []).map(o => ({ ...o, service: 'Bakery' })),
-        ...(juiceOrders.Items || []).map(o => ({ ...o, service: 'Juice' })),
-        ...(massageOrders.Items || []).map(o => ({ ...o, service: 'Massage' })),
-        ...(poolOrders.Items || []).map(o => ({ ...o, service: 'Pool' })),
+        ...(bookings.Items || []).map(o => ({ ...o, service: 'Games', orderId: o.bookingId, createdAt: o.createdAt || o.timestamp })),
+        ...(restaurantOrders.Items || []).map(o => ({ ...o, service: 'Restaurant', createdAt: o.createdAt || o.timestamp })),
+        ...(bakeryOrders.Items || []).map(o => ({ ...o, service: 'Bakery', createdAt: o.createdAt || o.timestamp })),
+        ...(juiceOrders.Items || []).map(o => ({ ...o, service: 'Juice', createdAt: o.createdAt || o.timestamp })),
+        ...(massageOrders.Items || []).map(o => ({ ...o, service: 'Massage', createdAt: o.createdAt || o.timestamp })),
+        ...(poolOrders.Items || []).map(o => ({ ...o, service: 'Pool', createdAt: o.createdAt || o.timestamp })),
     ];
 
     // Filter by date range if provided
