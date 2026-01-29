@@ -1235,7 +1235,7 @@ const getAdminDashboardStats = async () => {
     const yearStart = new Date(now.getFullYear(), 0, 1).toISOString();
 
     const allOrders = [
-        ...(bookings.Items || []).map(o => ({ ...o, service: 'Games', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
+        ...(bookings.Items || []).map(o => ({ ...o, service: o.service || 'Games', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
         ...(restaurantOrders.Items || []).map(o => ({ ...o, service: 'Restaurant', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
         ...(bakeryOrders.Items || []).map(o => ({ ...o, service: 'Bakery', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
         ...(juiceOrders.Items || []).map(o => ({ ...o, service: 'Juice', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
@@ -1302,7 +1302,7 @@ const getAllOrdersForAdmin = async (startDate, endDate) => {
     ]);
 
     let allOrders = [
-        ...(bookings.Items || []).map(o => ({ ...o, service: 'Games', orderId: o.bookingId, createdAt: o.createdAt || o.timestamp })),
+        ...(bookings.Items || []).map(o => ({ ...o, service: o.service || 'Games', orderId: o.bookingId, createdAt: o.createdAt || o.timestamp })),
         ...(restaurantOrders.Items || []).map(o => ({ ...o, service: 'Restaurant', createdAt: o.createdAt || o.timestamp })),
         ...(bakeryOrders.Items || []).map(o => ({ ...o, service: 'Bakery', createdAt: o.createdAt || o.timestamp })),
         ...(juiceOrders.Items || []).map(o => ({ ...o, service: 'Juice', createdAt: o.createdAt || o.timestamp })),
