@@ -316,7 +316,12 @@ app.post('/api/games/init', async (req, res) => {
 // Create booking
 app.post('/api/bookings', async (req, res) => {
     try {
-        const { customerId, customerName, customerMobile, items, totalAmount, totalCoins, paymentMethod, service } = req.body;
+        const {
+            customerId, customerName, customerMobile, items,
+            totalAmount, totalCoins, paymentMethod, service,
+            comboName, comboId, comboDiscount,
+            taxPercent, taxAmount
+        } = req.body;
 
         if (!items || !totalAmount || !service) {
             return res.status(400).json({ error: 'Items, totalAmount, and service are required' });
@@ -333,6 +338,11 @@ app.post('/api/bookings', async (req, res) => {
             totalCoins: totalCoins || 0,
             paymentMethod: paymentMethod || 'Cash',
             service,
+            comboName,
+            comboId,
+            comboDiscount: Number(comboDiscount || 0),
+            taxPercent: Number(taxPercent || 0),
+            taxAmount: Number(taxAmount || 0),
         });
 
         res.status(201).json(booking);
