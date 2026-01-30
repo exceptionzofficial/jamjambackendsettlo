@@ -152,9 +152,22 @@ app.post('/api/customers', async (req, res) => {
 // Get all customers
 app.get('/api/customers', async (req, res) => {
     try {
-        const customers = await getAllCustomers();
-        // Sort by checkinTime descending
-        customers.sort((a, b) => new Date(b.checkinTime) - new Date(a.checkinTime));
+        const { status } = req.query;
+        let customers = await getAllCustomers();
+
+        // Filter by status if provided
+        if (status) {
+            customers = customers.filter(c => c.status === status);
+        }
+
+        // Sort by checkinTime descending (if checked-out, maybe sort by checkoutTime)
+        customers.sort((a, b) => {
+            if (status === 'checked-out') {
+                return new Date(b.checkoutTime || 0) - new Date(a.checkoutTime || 0);
+            }
+            return new Date(b.checkinTime || 0) - new Date(a.checkinTime || 0);
+        });
+
         res.json(customers);
     } catch (error) {
         console.error('Error getting customers:', error);
