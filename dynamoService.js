@@ -1,5 +1,7 @@
 const { DynamoDBClient, CreateTableCommand, DescribeTableCommand, ListTablesCommand } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, UpdateCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 require('dotenv').config();
 
 // DynamoDB Client Configuration
@@ -12,6 +14,17 @@ const client = new DynamoDBClient({
 });
 
 const docClient = DynamoDBDocumentClient.from(client);
+
+// S3 Client Configuration
+const s3Client = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+});
+
+const S3_BUCKET = 'jamjam-resort-images';
 
 // Table Names
 const TABLES = {
@@ -30,6 +43,7 @@ const TABLES = {
     POOL_TYPES: 'JamJamPoolTypes',
     POOL_ORDERS: 'JamJamPoolOrders',
     TAX_SETTINGS: 'JamJamTaxSettings',
+    ROOMS: 'JamJamRooms',
 };
 
 // Default Menu Items
@@ -76,6 +90,23 @@ const DEFAULT_GAMES = [
     { gameId: 'game_12', name: 'Table Striker', coins: '-', minutes: 3, rate: 100 },
     { gameId: 'game_13', name: 'VR Game (18+)', coins: '-', minutes: 15, rate: 100 },
     { gameId: 'game_14', name: 'PS-4', coins: '-', minutes: 30, rate: 200 },
+];
+
+// Default Rooms Data
+const DEFAULT_ROOMS = [
+    { roomId: 'room_1', name: 'Semi Suite Hut', tamilName: 'குறிஞ்சி இல்லம்', price: 4000, size: '256 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_2', name: 'Semi Suite Hut', tamilName: 'முல்லை இல்லம்', price: 4200, size: '260 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_3', name: 'Semi Suite Hut', tamilName: 'மருதம் இல்லம்', price: 3800, size: '250 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_4', name: 'Semi Suite Hut', tamilName: 'நெய்தல் இல்லம்', price: 4500, size: '280 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_5', name: 'Semi Suite Hut', tamilName: 'பாலை இல்லம்', price: 4000, size: '256 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_6', name: 'Luxury Suite', tamilName: 'தாமரை இல்லம்', price: 5500, size: '350 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_7', name: 'Luxury Suite', tamilName: 'மல்லிகை இல்லம்', price: 5500, size: '350 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_8', name: 'Premium Hut', tamilName: 'ரோஜா இல்லம்', price: 4800, size: '300 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_9', name: 'Premium Hut', tamilName: 'லில்லி இல்லம்', price: 4800, size: '300 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_10', name: 'Standard Room', tamilName: 'செம்பருத்தி இல்லம்', price: 3500, size: '220 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_11', name: 'Standard Room', tamilName: 'டெய்சி இல்லம்', price: 3500, size: '220 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_12', name: 'Family Suite', tamilName: 'சூரியகாந்தி இல்லம்', price: 6000, size: '450 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_13', name: 'Executive Room', tamilName: 'ஆர்க்கிட் இல்லம்', price: 5200, size: '320 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
 ];
 
 // Check if table exists
@@ -471,6 +502,34 @@ const createTables = async () => {
         console.log('✓ Inserted 6 default tax settings');
     } else {
         console.log(`✓ Table ${TABLES.TAX_SETTINGS} already exists`);
+    }
+
+    // 15. Rooms Table
+    if (!(await tableExists(TABLES.ROOMS))) {
+        console.log(`📦 Creating table: ${TABLES.ROOMS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.ROOMS,
+            KeySchema: [
+                { AttributeName: 'roomId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'roomId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.ROOMS);
+
+        // Initialize with default rooms
+        console.log('📝 Inserting default rooms...');
+        for (const room of DEFAULT_ROOMS) {
+            await docClient.send(new PutCommand({
+                TableName: TABLES.ROOMS,
+                Item: { ...room, createdAt: new Date().toISOString() },
+            }));
+        }
+        console.log(`✓ Inserted ${DEFAULT_ROOMS.length} default rooms`);
+    } else {
+        console.log(`✓ Table ${TABLES.ROOMS} already exists`);
     }
 
     console.log('\n✅ All tables ready!');
@@ -1410,5 +1469,97 @@ module.exports = {
     // Admin Analytics
     getAdminDashboardStats,
     getAllOrdersForAdmin,
+    // Rooms
+    getAllRooms,
+    getRoomById,
+    createRoom,
+    updateRoom,
+    deleteRoom,
+    initializeDefaultRooms,
+    getRoomUploadUrl,
 };
+
+// ============= ROOM OPERATIONS =============
+
+async function getAllRooms() {
+    const response = await docClient.send(new ScanCommand({
+        TableName: TABLES.ROOMS,
+    }));
+    return response.Items || [];
+}
+
+async function getRoomById(roomId) {
+    const response = await docClient.send(new GetCommand({
+        TableName: TABLES.ROOMS,
+        Key: { roomId },
+    }));
+    return response.Item;
+}
+
+async function createRoom(room) {
+    const item = {
+        ...room,
+        roomId: room.roomId || `room_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+    };
+    await docClient.send(new PutCommand({
+        TableName: TABLES.ROOMS,
+        Item: item,
+    }));
+    return item;
+}
+
+async function updateRoom(roomId, updates) {
+    const updateExpressions = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    Object.keys(updates).forEach((key, index) => {
+        updateExpressions.push(`#attr${index} = :val${index}`);
+        expressionAttributeNames[`#attr${index}`] = key;
+        expressionAttributeValues[`:val${index}`] = updates[key];
+    });
+
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.ROOMS,
+        Key: { roomId },
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+}
+
+async function deleteRoom(roomId) {
+    await docClient.send(new DeleteCommand({
+        TableName: TABLES.ROOMS,
+        Key: { roomId },
+    }));
+}
+
+async function initializeDefaultRooms() {
+    console.log('📝 Initializing default rooms...');
+    for (const room of DEFAULT_ROOMS) {
+        await docClient.send(new PutCommand({
+            TableName: TABLES.ROOMS,
+            Item: { ...room, createdAt: new Date().toISOString() },
+        }));
+    }
+    return DEFAULT_ROOMS;
+}
+
+async function getRoomUploadUrl(fileName, fileType) {
+    const key = `rooms/${Date.now()}_${fileName}`;
+    const command = new PutObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: key,
+        ContentType: fileType,
+    });
+
+    const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    const publicUrl = `https://${S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+
+    return { uploadUrl, publicUrl };
+}
 

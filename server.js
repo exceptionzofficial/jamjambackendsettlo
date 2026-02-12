@@ -83,6 +83,14 @@ const {
     // Admin Analytics
     getAdminDashboardStats,
     getAllOrdersForAdmin,
+    // Rooms
+    getAllRooms,
+    getRoomById,
+    createRoom,
+    updateRoom,
+    deleteRoom,
+    initializeDefaultRooms,
+    getRoomUploadUrl,
 } = require('./dynamoService');
 
 const app = express();
@@ -949,6 +957,83 @@ app.post('/api/init', async (req, res) => {
     }
 });
 
+// ============= ROOM ROUTES =============
+
+app.get('/api/rooms', async (req, res) => {
+    try {
+        const rooms = await getAllRooms();
+        res.json(rooms);
+    } catch (error) {
+        console.error('Error fetching rooms:', error);
+        res.status(500).json({ error: 'Failed to fetch rooms' });
+    }
+});
+
+app.get('/api/rooms/:id', async (req, res) => {
+    try {
+        const room = await getRoomById(req.params.id);
+        if (!room) return res.status(404).json({ error: 'Room not found' });
+        res.json(room);
+    } catch (error) {
+        console.error('Error fetching room:', error);
+        res.status(500).json({ error: 'Failed to fetch room' });
+    }
+});
+
+app.post('/api/rooms', async (req, res) => {
+    try {
+        const room = await createRoom(req.body);
+        res.status(201).json(room);
+    } catch (error) {
+        console.error('Error creating room:', error);
+        res.status(500).json({ error: 'Failed to create room' });
+    }
+});
+
+app.put('/api/rooms/:id', async (req, res) => {
+    try {
+        const room = await updateRoom(req.params.id, req.body);
+        res.json(room);
+    } catch (error) {
+        console.error('Error updating room:', error);
+        res.status(500).json({ error: 'Failed to update room' });
+    }
+});
+
+app.delete('/api/rooms/:id', async (req, res) => {
+    try {
+        await deleteRoom(req.params.id);
+        res.json({ message: 'Room deleted' });
+    } catch (error) {
+        console.error('Error deleting room:', error);
+        res.status(500).json({ error: 'Failed to delete room' });
+    }
+});
+
+app.post('/api/rooms/upload-url', async (req, res) => {
+    try {
+        const { fileName, fileType } = req.body;
+        if (!fileName || !fileType) {
+            return res.status(400).json({ error: 'fileName and fileType are required' });
+        }
+        const result = await getRoomUploadUrl(fileName, fileType);
+        res.json(result);
+    } catch (error) {
+        console.error('Error generating upload URL:', error);
+        res.status(500).json({ error: 'Failed to generate upload URL' });
+    }
+});
+
+app.post('/api/rooms/seed', async (req, res) => {
+    try {
+        const rooms = await initializeDefaultRooms();
+        res.json({ message: 'Default rooms initialized', count: rooms.length });
+    } catch (error) {
+        console.error('Error seeding rooms:', error);
+        res.status(500).json({ error: 'Failed to seed rooms' });
+    }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
@@ -988,6 +1073,12 @@ const startServer = async () => {
             console.log('   GET  /api/bookings');
             console.log('   GET  /api/bookings/customer/:customerId');
             console.log('   GET  /api/bookings/:id');
+            console.log('   ---- Rooms ----');
+            console.log('   GET  /api/rooms');
+            console.log('   POST /api/rooms');
+            console.log('   PUT  /api/rooms/:id');
+            console.log('   DELETE /api/rooms/:id');
+            console.log('   POST /api/rooms/seed');
             console.log('');
         });
     } catch (error) {
