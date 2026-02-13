@@ -1,5 +1,5 @@
 const { DynamoDBClient, CreateTableCommand, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
-const { S3Client, CreateBucketCommand, HeadBucketCommand, PutBucketPolicyCommand } = require('@aws-sdk/client-s3');
+const { S3Client, CreateBucketCommand, HeadBucketCommand, PutBucketPolicyCommand, PutBucketCorsCommand, PutPublicAccessBlockCommand } = require('@aws-sdk/client-s3');
 require('dotenv').config();
 
 const config = {
@@ -67,10 +67,58 @@ async function setupS3() {
                 },
             }));
             console.log(`✓ Bucket ${BUCKETS.IMAGES} created`);
-
-            // Optional: Set bucket policy for public read if needed
-            // For now, we'll keep it private or use presigned URLs as per standard practices
         }
+
+        // Disable "Block Public Access" to allow public policy
+        console.log(`🔧 Disabling Block Public Access for: ${BUCKETS.IMAGES}`);
+        await s3Client.send(new PutPublicAccessBlockCommand({
+            Bucket: BUCKETS.IMAGES,
+            PublicAccessBlockConfiguration: {
+                BlockPublicAcls: false,
+                IgnorePublicAcls: false,
+                BlockPublicPolicy: false,
+                RestrictPublicBuckets: false
+            }
+        }));
+
+        // Configure CORS
+        console.log(`🔧 Configuring CORS for bucket: ${BUCKETS.IMAGES}`);
+        await s3Client.send(new PutBucketCorsCommand({
+            Bucket: BUCKETS.IMAGES,
+            CORSConfiguration: {
+                CORSRules: [
+                    {
+                        AllowedHeaders: ['*'],
+                        AllowedMethods: ['GET', 'PUT', 'POST', 'HEAD'],
+                        AllowedOrigins: ['*'],
+                        ExposeHeaders: ['ETag'],
+                        MaxAgeSeconds: 3000
+                    }
+                ]
+            }
+        }));
+        console.log('✓ CORS configuration applied');
+
+        // Set Public Read Policy
+        console.log(`🔧 Setting public read policy for bucket: ${BUCKETS.IMAGES}`);
+        const policy = {
+            Version: '2012-10-17',
+            Statement: [
+                {
+                    Sid: 'PublicReadGetObject',
+                    Effect: 'Allow',
+                    Principal: '*',
+                    Action: 's3:GetObject',
+                    Resource: `arn:aws:s3:::${BUCKETS.IMAGES}/*`
+                }
+            ]
+        };
+        await s3Client.send(new PutBucketPolicyCommand({
+            Bucket: BUCKETS.IMAGES,
+            Policy: JSON.stringify(policy)
+        }));
+        console.log('✓ Public read policy applied');
+
     } catch (error) {
         if (error.name === 'BucketAlreadyOwnedByYou') {
             console.log(`✓ Bucket ${BUCKETS.IMAGES} already owned by you`);

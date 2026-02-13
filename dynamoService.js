@@ -16,12 +16,16 @@ const client = new DynamoDBClient({
 const docClient = DynamoDBDocumentClient.from(client);
 
 // S3 Client Configuration
+// requestChecksumCalculation: 'WHEN_REQUIRED' prevents SDK from auto-adding
+// CRC32 checksums to presigned URLs (which would cause upload failures)
 const s3Client = new S3Client({
     region: process.env.AWS_REGION,
     credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     },
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
 });
 
 const S3_BUCKET = 'jamjam-resort-images';
@@ -1477,6 +1481,7 @@ module.exports = {
     deleteRoom,
     initializeDefaultRooms,
     getRoomUploadUrl,
+    uploadRoomImage,
 };
 
 // ============= ROOM OPERATIONS =============
@@ -1558,8 +1563,28 @@ async function getRoomUploadUrl(fileName, fileType) {
     });
 
     const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    // Normal S3 public URL
     const publicUrl = `https://${S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 
     return { uploadUrl, publicUrl };
 }
 
+async function uploadRoomImage(base64Data, fileName, fileType = 'image/jpeg') {
+    const key = `rooms/${Date.now()}_${fileName}`;
+
+    // Convert base64 to Buffer
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Upload directly to S3
+    const command = new PutObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: key,
+        Body: buffer,
+        ContentType: fileType,
+    });
+
+    await s3Client.send(command);
+
+    const publicUrl = `https://${S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    return { publicUrl };
+}

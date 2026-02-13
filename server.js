@@ -91,6 +91,7 @@ const {
     deleteRoom,
     initializeDefaultRooms,
     getRoomUploadUrl,
+    uploadRoomImage,
 } = require('./dynamoService');
 
 const app = express();
@@ -98,7 +99,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 
 // Request logging
 app.use((req, res, next) => {
@@ -1021,6 +1022,21 @@ app.post('/api/rooms/upload-url', async (req, res) => {
     } catch (error) {
         console.error('Error generating upload URL:', error);
         res.status(500).json({ error: 'Failed to generate upload URL' });
+    }
+});
+
+// Upload image via backend (base64 -> S3)
+app.post('/api/rooms/upload-image', async (req, res) => {
+    try {
+        const { base64Data, fileName, fileType } = req.body;
+        if (!base64Data || !fileName) {
+            return res.status(400).json({ error: 'base64Data and fileName are required' });
+        }
+        const result = await uploadRoomImage(base64Data, fileName, fileType || 'image/jpeg');
+        res.json(result);
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        res.status(500).json({ error: 'Failed to upload image' });
     }
 });
 
