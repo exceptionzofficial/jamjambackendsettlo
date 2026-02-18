@@ -109,19 +109,19 @@ const DEFAULT_GAMES = [
 
 // Default Rooms Data
 const DEFAULT_ROOMS = [
-    { roomId: 'room_1', name: 'Semi Suite Hut', tamilName: 'குறிஞ்சி இல்லம்', price: 4000, size: '256 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_2', name: 'Semi Suite Hut', tamilName: 'முல்லை இல்லம்', price: 4200, size: '260 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_3', name: 'Semi Suite Hut', tamilName: 'மருதம் இல்லம்', price: 3800, size: '250 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_4', name: 'Semi Suite Hut', tamilName: 'நெய்தல் இல்லம்', price: 4500, size: '280 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_5', name: 'Semi Suite Hut', tamilName: 'பாலை இல்லம்', price: 4000, size: '256 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_6', name: 'Luxury Suite', tamilName: 'தாமரை இல்லம்', price: 5500, size: '350 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_7', name: 'Luxury Suite', tamilName: 'மல்லிகை இல்லம்', price: 5500, size: '350 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_8', name: 'Premium Hut', tamilName: 'ரோஜா இல்லம்', price: 4800, size: '300 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_9', name: 'Premium Hut', tamilName: 'லில்லி இல்லம்', price: 4800, size: '300 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_10', name: 'Standard Room', tamilName: 'செம்பருத்தி இல்லம்', price: 3500, size: '220 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_11', name: 'Standard Room', tamilName: 'டெய்சி இல்லம்', price: 3500, size: '220 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_12', name: 'Family Suite', tamilName: 'சூரியகாந்தி இல்லம்', price: 6000, size: '450 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
-    { roomId: 'room_13', name: 'Executive Room', tamilName: 'ஆர்க்கிட் இல்லம்', price: 5200, size: '320 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [] },
+    { roomId: 'room_1', name: 'Semi Suite Hut', tamilName: 'குறிஞ்சி இல்லம்', price: 4000, size: '256 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['V-101', 'V-102', 'V-103', 'V-104'] },
+    { roomId: 'room_2', name: 'Semi Suite Hut', tamilName: 'முல்லை இல்லம்', price: 4200, size: '260 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['V-201', 'V-202'] },
+    { roomId: 'room_3', name: 'Semi Suite Hut', tamilName: 'மருதம் இல்லம்', price: 3800, size: '250 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['M-101', 'M-102', 'M-103'] },
+    { roomId: 'room_4', name: 'Semi Suite Hut', tamilName: 'நெய்தல் இல்லம்', price: 4500, size: '280 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['N-101', 'N-102'] },
+    { roomId: 'room_5', name: 'Semi Suite Hut', tamilName: 'பாலை இல்லம்', price: 4000, size: '256 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['P-101', 'P-102'] },
+    { roomId: 'room_6', name: 'Luxury Suite', tamilName: 'தாமரை இல்லம்', price: 5500, size: '350 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['L-101', 'L-102'] },
+    { roomId: 'room_7', name: 'Luxury Suite', tamilName: 'மல்லிகை இல்லம்', price: 5500, size: '350 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['L-201', 'L-202'] },
+    { roomId: 'room_8', name: 'Premium Hut', tamilName: 'ரோஜா இல்லம்', price: 4800, size: '300 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['PH-101', 'PH-102'] },
+    { roomId: 'room_9', name: 'Premium Hut', tamilName: 'லில்லி இல்லம்', price: 4800, size: '300 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['PH-201', 'PH-202'] },
+    { roomId: 'room_10', name: 'Standard Room', tamilName: 'செம்பருத்தி இல்லம்', price: 3500, size: '220 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['S-101', 'S-102', 'S-103', 'S-104'] },
+    { roomId: 'room_11', name: 'Standard Room', tamilName: 'டெய்சி இல்லம்', price: 3500, size: '220 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['S-201', 'S-202'] },
+    { roomId: 'room_12', name: 'Family Suite', tamilName: 'சூரியகாந்தி இல்லம்', price: 6000, size: '450 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['FS-101', 'FS-102'] },
+    { roomId: 'room_13', name: 'Executive Room', tamilName: 'ஆர்க்கிட் இல்லம்', price: 5200, size: '320 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['E-101', 'E-102'] },
 ];
 
 // Check if table exists
@@ -534,18 +534,21 @@ const createTables = async () => {
             ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
         }));
         await waitForTable(TABLES.ROOMS);
-
-        // Initialize with default rooms
-        console.log('📝 Inserting default rooms...');
-        for (const room of DEFAULT_ROOMS) {
-            await docClient.send(new PutCommand({
-                TableName: TABLES.ROOMS,
-                Item: { ...room, createdAt: new Date().toISOString() },
-            }));
-        }
-        console.log(`✓ Inserted ${DEFAULT_ROOMS.length} default rooms`);
+        await initializeDefaultRooms();
     } else {
         console.log(`✓ Table ${TABLES.ROOMS} already exists`);
+        // Check if empty or outdated (missing roomNumbers) and seed if necessary
+        try {
+            const response = await docClient.send(new ScanCommand({ TableName: TABLES.ROOMS, Limit: 1 }));
+            const needsSeeding = !response.Items || response.Items.length === 0 || !response.Items[0].roomNumbers;
+
+            if (needsSeeding) {
+                console.log('📝 Table is empty or contains outdated data, seeding default rooms...');
+                await initializeDefaultRooms();
+            }
+        } catch (error) {
+            console.error('Error checking if rooms table needs seeding:', error);
+        }
     }
 
     // 16. Bar Orders Table
