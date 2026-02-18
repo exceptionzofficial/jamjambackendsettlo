@@ -35,7 +35,7 @@ const TABLES = {
     CUSTOMERS: 'JamJamCustomers',
     GAMES: 'JamJamGames',
     BOOKINGS: 'JamJamBookings',
-    MENU_ITEMS: 'JamJamMenuItems',
+    MENU_ITEMS: 'jumjum-menu-items',
     COMBOS: 'JamJamCombos',
     RESTAURANT_ORDERS: 'JamJamRestaurantOrders',
     BAKERY_ITEMS: 'JamJamBakeryItems',
@@ -48,34 +48,45 @@ const TABLES = {
     POOL_ORDERS: 'JamJamPoolOrders',
     TAX_SETTINGS: 'JamJamTaxSettings',
     ROOMS: 'JamJamRooms',
+    BAR_ORDERS: 'JamJamBarOrders',
 };
 
 // Default Menu Items
 const DEFAULT_MENU_ITEMS = [
     // Veg Items
-    { itemId: 'menu_1', name: 'Veg Biryani', category: 'veg', price: 150, description: 'Aromatic rice with mixed vegetables', available: true },
-    { itemId: 'menu_2', name: 'Paneer Butter Masala', category: 'veg', price: 180, description: 'Paneer in rich tomato gravy', available: true },
-    { itemId: 'menu_3', name: 'Dal Fry', category: 'veg', price: 120, description: 'Yellow lentils tempered with spices', available: true },
-    { itemId: 'menu_4', name: 'Veg Fried Rice', category: 'veg', price: 130, description: 'Stir fried rice with vegetables', available: true },
-    { itemId: 'menu_5', name: 'Jeera Rice', category: 'veg', price: 100, description: 'Basmati rice with cumin', available: true },
-    { itemId: 'menu_6', name: 'Butter Naan', category: 'veg', price: 40, description: 'Soft naan brushed with butter', available: true },
+    { itemId: 'menu_1', name: 'Veg Biryani', category: 'veg', price: 150, description: 'Aromatic rice with mixed vegetables', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_2', name: 'Paneer Butter Masala', category: 'veg', price: 180, description: 'Paneer in rich tomato gravy', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_3', name: 'Dal Fry', category: 'veg', price: 120, description: 'Yellow lentils tempered with spices', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_4', name: 'Veg Fried Rice', category: 'veg', price: 130, description: 'Stir fried rice with vegetables', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_5', name: 'Jeera Rice', category: 'veg', price: 100, description: 'Basmati rice with cumin', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_6', name: 'Butter Naan', category: 'veg', price: 40, description: 'Soft naan brushed with butter', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
     // Non-Veg Items
-    { itemId: 'menu_7', name: 'Chicken Biryani', category: 'non-veg', price: 200, description: 'Hyderabadi style chicken biryani', available: true },
-    { itemId: 'menu_8', name: 'Butter Chicken', category: 'non-veg', price: 220, description: 'Creamy tomato chicken curry', available: true },
-    { itemId: 'menu_9', name: 'Mutton Curry', category: 'non-veg', price: 280, description: 'Spicy mutton in rich gravy', available: true },
-    { itemId: 'menu_10', name: 'Fish Fry', category: 'non-veg', price: 180, description: 'Crispy fried fish', available: true },
-    { itemId: 'menu_11', name: 'Egg Curry', category: 'non-veg', price: 140, description: 'Eggs in spiced onion gravy', available: true },
-    { itemId: 'menu_12', name: 'Chicken Fried Rice', category: 'non-veg', price: 160, description: 'Stir fried rice with chicken', available: true },
+    { itemId: 'menu_7', name: 'Chicken Biryani', category: 'non-veg', price: 200, description: 'Hyderabadi style chicken biryani', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_8', name: 'Butter Chicken', category: 'non-veg', price: 220, description: 'Creamy tomato chicken curry', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_9', name: 'Mutton Curry', category: 'non-veg', price: 280, description: 'Spicy mutton in rich gravy', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_10', name: 'Fish Fry', category: 'non-veg', price: 180, description: 'Crispy fried fish', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_11', name: 'Egg Curry', category: 'non-veg', price: 140, description: 'Eggs in spiced onion gravy', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_12', name: 'Chicken Fried Rice', category: 'non-veg', price: 160, description: 'Stir fried rice with chicken', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
     // Drinks
-    { itemId: 'menu_13', name: 'Coca Cola', category: 'drinks', price: 40, description: '300ml bottle', available: true },
-    { itemId: 'menu_14', name: 'Sprite', category: 'drinks', price: 40, description: '300ml bottle', available: true },
-    { itemId: 'menu_15', name: 'Mango Lassi', category: 'drinks', price: 60, description: 'Sweet mango yogurt drink', available: true },
-    { itemId: 'menu_16', name: 'Fresh Lime Soda', category: 'drinks', price: 50, description: 'Refreshing lime soda', available: true },
-    { itemId: 'menu_17', name: 'Mineral Water', category: 'drinks', price: 20, description: '500ml bottle', available: true },
+    { itemId: 'menu_13', name: 'Coca Cola', category: 'drinks', price: 40, description: '300ml bottle', available: true, isKitchen: false, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_14', name: 'Sprite', category: 'drinks', price: 40, description: '300ml bottle', available: true, isKitchen: false, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_15', name: 'Mango Lassi', category: 'drinks', price: 60, description: 'Sweet mango yogurt drink', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_16', name: 'Fresh Lime Soda', category: 'drinks', price: 50, description: 'Refreshing lime soda', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_17', name: 'Mineral Water', category: 'drinks', price: 20, description: '500ml bottle', available: true, isKitchen: false, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
     // Desserts
-    { itemId: 'menu_18', name: 'Gulab Jamun', category: 'desserts', price: 60, description: '2 pieces with sugar syrup', available: true },
-    { itemId: 'menu_19', name: 'Ice Cream', category: 'desserts', price: 80, description: 'Vanilla/Chocolate/Strawberry', available: true },
-    { itemId: 'menu_20', name: 'Kheer', category: 'desserts', price: 70, description: 'Rice pudding with nuts', available: true },
+    { itemId: 'menu_18', name: 'Gulab Jamun', category: 'desserts', price: 60, description: '2 pieces with sugar syrup', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_19', name: 'Ice Cream', category: 'desserts', price: 80, description: 'Vanilla/Chocolate/Strawberry', available: true, isKitchen: false, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'menu_20', name: 'Kheer', category: 'desserts', price: 70, description: 'Rice pudding with nuts', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    // Bar Items
+    { itemId: 'bar_1', name: 'Old Monk Rum', category: 'rum', price: 180, description: '60ml peg with side-car', available: true, isKitchen: false, stock: 50, lowStockThreshold: 5, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'bar_2', name: 'Kingfisher Premium', category: 'beer', price: 250, description: '650ml bottle', available: true, isKitchen: false, stock: 48, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'bar_3', name: 'Jack Daniels Whiskey', category: 'whiskey', price: 450, description: '30ml neat/on rocks', available: true, isKitchen: false, stock: 20, lowStockThreshold: 5, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'bar_4', name: 'Sula Red Wine', category: 'wine', price: 350, description: '150ml glass', available: true, isKitchen: false, stock: 15, lowStockThreshold: 3, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'bar_5', name: 'Gordon\'s London Dry Gin', category: 'gin', price: 300, description: '30ml with tonic', available: true, isKitchen: false, stock: 12, lowStockThreshold: 2, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'bar_6', name: 'Absolut Vodka', category: 'vodka', price: 320, description: '30ml chilled', available: true, isKitchen: false, stock: 25, lowStockThreshold: 5, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'bar_7', name: 'Classic Mojito', category: 'cocktails', price: 280, description: 'White rum, mint, lime', available: true, isKitchen: true, stock: 100, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'bar_8', name: 'Masala Peanuts', category: 'snacks', price: 80, description: 'Spicy bar snack', available: true, isKitchen: true, stock: 50, lowStockThreshold: 10, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { itemId: 'BAR-BRA-022', name: '1848 Brandy', category: 'brandy', price: 340, description: 'Premium Brandy', available: true, isKitchen: false, stock: 39, lowStockThreshold: 10, createdAt: '2025-12-31T12:34:47.135Z', updatedAt: '2026-01-22T12:23:00.147Z' },
 ];
 
 // Default Games Data
@@ -496,6 +507,7 @@ const createTables = async () => {
             { serviceId: 'juice', serviceName: 'Juice Bar', taxPercent: 5, description: 'Fresh Juices' },
             { serviceId: 'massage', serviceName: 'Massage', taxPercent: 18, description: 'Spa & Massage' },
             { serviceId: 'pool', serviceName: 'Pool', taxPercent: 18, description: 'Swimming Pool' },
+            { serviceId: 'bar', serviceName: 'Bar', taxPercent: 18, description: 'Bar & Beverages' },
         ];
         for (const setting of defaultTaxSettings) {
             await docClient.send(new PutCommand({
@@ -503,7 +515,7 @@ const createTables = async () => {
                 Item: { ...setting, updatedAt: new Date().toISOString() },
             }));
         }
-        console.log('✓ Inserted 6 default tax settings');
+        console.log('✓ Inserted 7 default tax settings');
     } else {
         console.log(`✓ Table ${TABLES.TAX_SETTINGS} already exists`);
     }
@@ -534,6 +546,35 @@ const createTables = async () => {
         console.log(`✓ Inserted ${DEFAULT_ROOMS.length} default rooms`);
     } else {
         console.log(`✓ Table ${TABLES.ROOMS} already exists`);
+    }
+
+    // 16. Bar Orders Table
+    if (!(await tableExists(TABLES.BAR_ORDERS))) {
+        console.log(`📦 Creating table: ${TABLES.BAR_ORDERS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.BAR_ORDERS,
+            KeySchema: [
+                { AttributeName: 'orderId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'orderId', AttributeType: 'S' },
+                { AttributeName: 'customerId', AttributeType: 'S' },
+            ],
+            GlobalSecondaryIndexes: [
+                {
+                    IndexName: 'customerId-index',
+                    KeySchema: [
+                        { AttributeName: 'customerId', KeyType: 'HASH' },
+                    ],
+                    Projection: { ProjectionType: 'ALL' },
+                    ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+                },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.BAR_ORDERS);
+    } else {
+        console.log(`✓ Table ${TABLES.BAR_ORDERS} already exists`);
     }
 
     console.log('\n✅ All tables ready!');
@@ -1282,6 +1323,7 @@ const getAdminDashboardStats = async () => {
         juiceOrders,
         massageOrders,
         poolOrders,
+        barOrders,
     ] = await Promise.all([
         docClient.send(new ScanCommand({ TableName: TABLES.BOOKINGS })),
         docClient.send(new ScanCommand({ TableName: TABLES.RESTAURANT_ORDERS })),
@@ -1289,6 +1331,7 @@ const getAdminDashboardStats = async () => {
         docClient.send(new ScanCommand({ TableName: TABLES.JUICE_ORDERS })),
         docClient.send(new ScanCommand({ TableName: TABLES.MASSAGE_ORDERS })),
         docClient.send(new ScanCommand({ TableName: TABLES.POOL_ORDERS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.BAR_ORDERS })),
     ]);
 
     const now = new Date();
@@ -1304,6 +1347,7 @@ const getAdminDashboardStats = async () => {
         ...(juiceOrders.Items || []).map(o => ({ ...o, service: 'Juice', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
         ...(massageOrders.Items || []).map(o => ({ ...o, service: 'Massage', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
         ...(poolOrders.Items || []).map(o => ({ ...o, service: 'Pool', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
+        ...(barOrders.Items || []).map(o => ({ ...o, service: 'Bar', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
     ];
 
     const calculateRevenue = (orders, startDate) => {
@@ -1482,6 +1526,16 @@ module.exports = {
     initializeDefaultRooms,
     getRoomUploadUrl,
     uploadRoomImage,
+    // Bar Orders
+    createBarOrder,
+    getAllBarOrders,
+    getCustomerBarOrders,
+    updateBarOrderStatus,
+    // Tax Settings
+    initializeTaxSettings,
+    getTaxSettings: getAllTaxSettings,
+    getTaxSettingByService,
+    updateTaxSetting,
 };
 
 // ============= ROOM OPERATIONS =============
@@ -1587,4 +1641,127 @@ async function uploadRoomImage(base64Data, fileName, fileType = 'image/jpeg') {
 
     const publicUrl = `https://${S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
     return { publicUrl };
+}
+
+// ============= BAR ORDER OPERATIONS =============
+
+async function createBarOrder(order) {
+    const now = new Date().toISOString();
+    const newOrder = {
+        ...order,
+        orderId: order.orderId || `bar_${Date.now()}`,
+        status: order.status || 'pending',
+        createdAt: now,
+        updatedAt: now,
+    };
+
+    // Process inventory deduction
+    if (order.items && order.items.length > 0) {
+        await Promise.all(order.items.map(async (item) => {
+            try {
+                const itemId = item.itemId;
+                const quantity = item.quantity;
+                const servingType = item.servingType;
+
+                // Get current item to check category and volume
+                const menuResponse = await docClient.send(new GetCommand({
+                    TableName: TABLES.MENU_ITEMS,
+                    Key: { itemId }
+                }));
+
+                const menuItem = menuResponse.Item;
+                if (!menuItem) return;
+
+                let amountToDeduct = quantity;
+                const volume = menuItem.volumePerUnit || 750;
+                const shotSize = menuItem.servingSize || 30;
+
+                if (servingType === 'Shot') {
+                    amountToDeduct = quantity * shotSize;
+                } else if (servingType === 'Bottle') {
+                    amountToDeduct = quantity * volume;
+                } else {
+                    // Default behavior for other items (snacks, beer bottles etc)
+                    // If it's a beer bottle, it might also be tracked in ml or units.
+                    // For now, let's assume units if no servingType.
+                    amountToDeduct = quantity;
+                }
+
+                await docClient.send(new UpdateCommand({
+                    TableName: TABLES.MENU_ITEMS,
+                    Key: { itemId },
+                    UpdateExpression: 'SET stock = stock - :val',
+                    ExpressionAttributeValues: { ':val': amountToDeduct }
+                }));
+
+            } catch (err) {
+                console.error(`Error deducting stock for item ${item.itemId}:`, err);
+            }
+        }));
+    }
+
+    await docClient.send(new PutCommand({ TableName: TABLES.BAR_ORDERS, Item: newOrder }));
+    return newOrder;
+}
+
+async function getAllBarOrders() {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.BAR_ORDERS }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+async function updateBarOrderStatus(orderId, status) {
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.BAR_ORDERS,
+        Key: { orderId },
+        UpdateExpression: 'SET #status = :status, updatedAt = :updatedAt',
+        ExpressionAttributeNames: { '#status': 'status' },
+        ExpressionAttributeValues: { ':status': status, ':updatedAt': new Date().toISOString() },
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+}
+
+async function getCustomerBarOrders(customerId) {
+    const response = await docClient.send(new QueryCommand({
+        TableName: TABLES.BAR_ORDERS,
+        IndexName: 'customerId-index',
+        KeyConditionExpression: 'customerId = :customerId',
+        ExpressionAttributeValues: { ':customerId': customerId },
+    }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+// ============= TAX DEFAULTS & INITIALIZATION =============
+
+const DEFAULT_TAX_SETTINGS = [
+    { serviceId: 'games', serviceName: 'Games', description: 'Indoor and outdoor games', taxPercent: 18 },
+    { serviceId: 'restaurant', serviceName: 'Restaurant', description: 'Food and dining', taxPercent: 5 },
+    { serviceId: 'bakery', serviceName: 'Bakery', description: 'Bakery items and cakes', taxPercent: 5 },
+    { serviceId: 'juice', serviceName: 'Juice Bar', description: 'Fresh juices and smoothies', taxPercent: 5 },
+    { serviceId: 'massage', serviceName: 'Massage', description: 'Spa and massage services', taxPercent: 18 },
+    { serviceId: 'pool', serviceName: 'Pool', description: 'Swimming pool access', taxPercent: 18 },
+    { serviceId: 'bar', serviceName: 'Bar', description: 'Bar and beverages', taxPercent: 18 },
+    { serviceId: 'rooms', serviceName: 'Rooms', description: 'Room booking and stay', taxPercent: 12 },
+];
+
+async function initializeTaxSettings() {
+    try {
+        const existing = await docClient.send(new ScanCommand({ TableName: TABLES.TAX_SETTINGS }));
+        if (existing.Items && existing.Items.length > 0) {
+            // Check if rooms is missing and add it
+            const hasRooms = existing.Items.some(item => item.serviceId === 'rooms');
+            if (!hasRooms) {
+                const roomSetting = DEFAULT_TAX_SETTINGS.find(s => s.serviceId === 'rooms');
+                await docClient.send(new PutCommand({ TableName: TABLES.TAX_SETTINGS, Item: roomSetting }));
+                console.log('Added rooms tax setting');
+            }
+            return;
+        }
+        await Promise.all(DEFAULT_TAX_SETTINGS.map(setting =>
+            docClient.send(new PutCommand({ TableName: TABLES.TAX_SETTINGS, Item: setting }))
+        ));
+        console.log('Tax settings initialized with defaults');
+    } catch (error) {
+        console.error('Error initializing tax settings:', error);
+    }
 }

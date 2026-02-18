@@ -80,6 +80,8 @@ const {
     getAllTaxSettings,
     getTaxSettingByService,
     updateTaxSetting,
+    initializeTaxSettings,
+    getTaxSettings,
     // Admin Analytics
     getAdminDashboardStats,
     getAllOrdersForAdmin,
@@ -92,6 +94,11 @@ const {
     initializeDefaultRooms,
     getRoomUploadUrl,
     uploadRoomImage,
+    // Bar Orders
+    createBarOrder,
+    getAllBarOrders,
+    getCustomerBarOrders,
+    updateBarOrderStatus,
 } = require('./dynamoService');
 
 const app = express();
@@ -454,6 +461,56 @@ app.delete('/api/menu/:id', async (req, res) => {
     } catch (error) {
         console.error('Error deleting menu item:', error);
         res.status(500).json({ error: 'Failed to delete menu item' });
+    }
+});
+
+// ============= BAR ITEMS API =============
+
+// Get all bar items
+app.get('/api/bar/items', async (req, res) => {
+    try {
+        const items = await getAllMenuItems();
+        // Categorized as bar items in the implementation plan
+        const barCategories = ['whiskey', 'beer', 'wine', 'cocktails', 'vodka', 'gin', 'rum', 'snacks', 'brandy'];
+        const barItems = items.filter(i => barCategories.includes(i.category?.toLowerCase()));
+        res.json(barItems);
+    } catch (error) {
+        console.error('Error getting bar items:', error);
+        res.status(500).json({ error: 'Failed to get bar items' });
+    }
+});
+
+// Create bar item
+app.post('/api/bar/items', async (req, res) => {
+    try {
+        const itemId = `bar_${uuidv4().substring(0, 8)}`;
+        const item = await createMenuItem({ ...req.body, itemId });
+        res.status(201).json(item);
+    } catch (error) {
+        console.error('Error creating bar item:', error);
+        res.status(500).json({ error: 'Failed to create bar item' });
+    }
+});
+
+// Update bar item
+app.put('/api/bar/items/:id', async (req, res) => {
+    try {
+        const updated = await updateMenuItem(req.params.id, req.body);
+        res.json(updated);
+    } catch (error) {
+        console.error('Error updating bar item:', error);
+        res.status(500).json({ error: 'Failed to update bar item' });
+    }
+});
+
+// Delete bar item
+app.delete('/api/bar/items/:id', async (req, res) => {
+    try {
+        await deleteMenuItem(req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting bar item:', error);
+        res.status(500).json({ error: 'Failed to delete bar item' });
     }
 });
 
@@ -1050,6 +1107,83 @@ app.post('/api/rooms/seed', async (req, res) => {
     }
 });
 
+// ============= BAR ORDER ROUTES =============
+
+app.post('/api/bar-orders', async (req, res) => {
+    try {
+        const order = await createBarOrder(req.body);
+        res.status(201).json(order);
+    } catch (error) {
+        console.error('Error creating bar order:', error);
+        res.status(500).json({ error: 'Failed to create bar order' });
+    }
+});
+
+app.get('/api/bar-orders', async (req, res) => {
+    try {
+        const orders = await getAllBarOrders();
+        res.json(orders);
+    } catch (error) {
+        console.error('Error getting bar orders:', error);
+        res.status(500).json({ error: 'Failed to get bar orders' });
+    }
+});
+
+app.get('/api/bar-orders/customer/:customerId', async (req, res) => {
+    try {
+        const orders = await getCustomerBarOrders(req.params.customerId);
+        res.json(orders);
+    } catch (error) {
+        console.error('Error getting customer bar orders:', error);
+        res.status(500).json({ error: 'Failed to get customer bar orders' });
+    }
+});
+
+app.patch('/api/bar-orders/:id/status', async (req, res) => {
+    try {
+        const { status } = req.body;
+        const updated = await updateBarOrderStatus(req.params.id, status);
+        res.json(updated);
+    } catch (error) {
+        console.error('Error updating bar order status:', error);
+        res.status(500).json({ error: 'Failed to update bar order status' });
+    }
+});
+
+// ============= TAX SETTINGS =============
+
+app.get('/api/tax-settings', async (req, res) => {
+    try {
+        const settings = await getTaxSettings();
+        res.json(settings);
+    } catch (error) {
+        console.error('Error getting tax settings:', error);
+        res.status(500).json({ error: 'Failed to get tax settings' });
+    }
+});
+
+app.get('/api/tax-settings/:serviceId', async (req, res) => {
+    try {
+        const setting = await getTaxSettingByService(req.params.serviceId);
+        if (!setting) return res.status(404).json({ error: 'Tax setting not found' });
+        res.json(setting);
+    } catch (error) {
+        console.error('Error getting tax setting:', error);
+        res.status(500).json({ error: 'Failed to get tax setting' });
+    }
+});
+
+app.put('/api/tax-settings/:serviceId', async (req, res) => {
+    try {
+        const { taxPercent } = req.body;
+        const updated = await updateTaxSetting(req.params.serviceId, taxPercent);
+        res.json(updated);
+    } catch (error) {
+        console.error('Error updating tax setting:', error);
+        res.status(500).json({ error: 'Failed to update tax setting' });
+    }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
@@ -1065,6 +1199,10 @@ const startServer = async () => {
         // Initialize DynamoDB tables on startup
         console.log('🔧 Checking DynamoDB tables...');
         await createTables();
+
+        // Initialize tax settings
+        console.log('💰 Checking tax settings...');
+        await initializeTaxSettings();
 
         app.listen(PORT, () => {
             console.log(`\n🚀 Server running on http://localhost:${PORT}`);
@@ -1095,6 +1233,15 @@ const startServer = async () => {
             console.log('   PUT  /api/rooms/:id');
             console.log('   DELETE /api/rooms/:id');
             console.log('   POST /api/rooms/seed');
+            console.log('   ---- Bar Orders ----');
+            console.log('   POST /api/bar-orders');
+            console.log('   GET  /api/bar-orders');
+            console.log('   GET  /api/bar-orders/customer/:customerId');
+            console.log('   PATCH /api/bar-orders/:id/status');
+            console.log('   ---- Tax Settings ----');
+            console.log('   GET  /api/tax-settings');
+            console.log('   GET  /api/tax-settings/:serviceId');
+            console.log('   PUT  /api/tax-settings/:serviceId');
             console.log('');
         });
     } catch (error) {
