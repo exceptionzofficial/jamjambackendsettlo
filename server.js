@@ -156,6 +156,7 @@ app.post('/api/customers', async (req, res) => {
             walletAmount: walletAmount || 0,
             checkinTime: new Date().toISOString(),
             status: 'checked-in',
+            isVisitor: req.body.isVisitor || false,
         });
 
         res.status(201).json(customer);
