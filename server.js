@@ -107,6 +107,14 @@ const {
     createTheaterShow,
     updateTheaterShow,
     deleteTheaterShow,
+    // Function Hall
+    getAllFunctionHalls,
+    createFunctionHall,
+    updateFunctionHall,
+    deleteFunctionHall,
+    createFunctionHallBooking,
+    getAllFunctionHallBookings,
+    getCustomerFunctionHallBookings,
 } = require('./dynamoService');
 
 const app = express();
@@ -1224,6 +1232,85 @@ app.get('/api/theater/bookings/customer/:customerId', async (req, res) => {
     }
 });
 
+// ============= FUNCTION HALL ROUTES =============
+
+// Get all function halls
+app.get('/api/function-halls', async (req, res) => {
+    try {
+        const halls = await getAllFunctionHalls();
+        res.json(halls);
+    } catch (error) {
+        console.error('Error getting function halls:', error);
+        res.status(500).json({ error: 'Failed to get function halls' });
+    }
+});
+
+// Create function hall
+app.post('/api/function-halls', async (req, res) => {
+    try {
+        const hall = await createFunctionHall(req.body);
+        res.status(201).json(hall);
+    } catch (error) {
+        console.error('Error creating function hall:', error);
+        res.status(500).json({ error: 'Failed to create function hall' });
+    }
+});
+
+// Update function hall
+app.put('/api/function-halls/:id', async (req, res) => {
+    try {
+        const hall = await updateFunctionHall(req.params.id, req.body);
+        res.json(hall);
+    } catch (error) {
+        console.error('Error updating function hall:', error);
+        res.status(500).json({ error: 'Failed to update function hall' });
+    }
+});
+
+// Delete function hall
+app.delete('/api/function-halls/:id', async (req, res) => {
+    try {
+        await deleteFunctionHall(req.params.id);
+        res.json({ success: true, message: 'Function hall deleted' });
+    } catch (error) {
+        console.error('Error deleting function hall:', error);
+        res.status(500).json({ error: 'Failed to delete function hall' });
+    }
+});
+
+// Create function hall booking
+app.post('/api/function-hall/bookings', async (req, res) => {
+    try {
+        const booking = await createFunctionHallBooking(req.body);
+        res.status(201).json(booking);
+    } catch (error) {
+        console.error('Error creating function hall booking:', error);
+        res.status(500).json({ error: 'Failed to create function hall booking' });
+    }
+});
+
+// Get all function hall bookings
+app.get('/api/function-hall/bookings', async (req, res) => {
+    try {
+        const bookings = await getAllFunctionHallBookings();
+        res.json(bookings);
+    } catch (error) {
+        console.error('Error getting function hall bookings:', error);
+        res.status(500).json({ error: 'Failed to get function hall bookings' });
+    }
+});
+
+// Get function hall bookings by customer
+app.get('/api/function-hall/bookings/customer/:customerId', async (req, res) => {
+    try {
+        const bookings = await getCustomerFunctionHallBookings(req.params.customerId);
+        res.json(bookings);
+    } catch (error) {
+        console.error('Error getting customer function hall bookings:', error);
+        res.status(500).json({ error: 'Failed to get customer function hall bookings' });
+    }
+});
+
 // ============= TAX SETTINGS =============
 
 app.get('/api/tax-settings', async (req, res) => {
@@ -1320,6 +1407,10 @@ const startServer = async () => {
             console.log('   GET  /api/theater/shows');
             console.log('   POST /api/theater/bookings');
             console.log('   GET  /api/theater/bookings/customer/:customerId');
+            console.log('   ---- Function Hall ----');
+            console.log('   GET  /api/function-halls');
+            console.log('   POST /api/function-hall/bookings');
+            console.log('   GET  /api/function-hall/bookings/customer/:customerId');
             console.log('');
         });
     } catch (error) {

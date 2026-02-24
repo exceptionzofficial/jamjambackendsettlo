@@ -51,6 +51,8 @@ const TABLES = {
     BAR_ORDERS: 'JamJamBarOrders',
     THEATER_SHOWS: 'JamJamTheaterShows',
     THEATER_BOOKINGS: 'JamJamTheaterBookings',
+    FUNCTION_HALLS: 'JamJamFunctionHalls',
+    FUNCTION_HALL_BOOKINGS: 'JamJamFunctionHallBookings',
 };
 
 // Default Menu Items
@@ -133,6 +135,15 @@ const DEFAULT_THEATER_SHOWS = [
     { showId: 'show_3', name: 'Comedy Night', time: '05:00 PM', duration: '90 min', price: 250, totalSeats: 30, availableSeats: 15, icon: 'emoticon-lol' },
     { showId: 'show_4', name: 'Musical Concert', time: '07:30 PM', duration: '120 min', price: 350, totalSeats: 50, availableSeats: 25, icon: 'music' },
     { showId: 'show_5', name: 'Kids Puppet Show', time: '10:00 AM', duration: '30 min', price: 100, totalSeats: 60, availableSeats: 60, icon: 'teddy-bear' },
+];
+
+// Default Function Halls Data
+const DEFAULT_FUNCTION_HALLS = [
+    { hallId: 'hall_1', name: 'Grand Ballroom', capacity: 500, pricePerHour: 5000, pricePerDay: 35000, amenities: ['AC', 'Stage', 'Sound System', 'Parking'], available: true, icon: 'castle' },
+    { hallId: 'hall_2', name: 'Crystal Hall', capacity: 200, pricePerHour: 3000, pricePerDay: 20000, amenities: ['AC', 'Projector', 'WiFi'], available: true, icon: 'diamond-stone' },
+    { hallId: 'hall_3', name: 'Garden Pavilion', capacity: 150, pricePerHour: 2000, pricePerDay: 15000, amenities: ['Open Air', 'Lawn', 'Stage'], available: true, icon: 'flower' },
+    { hallId: 'hall_4', name: 'Conference Room A', capacity: 50, pricePerHour: 1000, pricePerDay: 7000, amenities: ['AC', 'Projector', 'WiFi', 'Whiteboard'], available: true, icon: 'presentation' },
+    { hallId: 'hall_5', name: 'Banquet Hall', capacity: 300, pricePerHour: 4000, pricePerDay: 28000, amenities: ['AC', 'Stage', 'Catering', 'Decor'], available: true, icon: 'silverware-fork-knife' },
 ];
 
 // Check if table exists
@@ -641,6 +652,58 @@ const createTables = async () => {
             ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
         }));
         await waitForTable(TABLES.THEATER_BOOKINGS);
+    }
+
+    // 19. Function Halls Table
+    if (!(await tableExists(TABLES.FUNCTION_HALLS))) {
+        console.log(`📦 Creating table: ${TABLES.FUNCTION_HALLS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.FUNCTION_HALLS,
+            KeySchema: [
+                { AttributeName: 'hallId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'hallId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.FUNCTION_HALLS);
+
+        // Seed default halls
+        console.log('📝 Seeding default function halls...');
+        for (const hall of DEFAULT_FUNCTION_HALLS) {
+            await docClient.send(new PutCommand({
+                TableName: TABLES.FUNCTION_HALLS,
+                Item: { ...hall, createdAt: new Date().toISOString() },
+            }));
+        }
+    }
+
+    // 20. Function Hall Bookings Table
+    if (!(await tableExists(TABLES.FUNCTION_HALL_BOOKINGS))) {
+        console.log(`📦 Creating table: ${TABLES.FUNCTION_HALL_BOOKINGS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.FUNCTION_HALL_BOOKINGS,
+            KeySchema: [
+                { AttributeName: 'bookingId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'bookingId', AttributeType: 'S' },
+                { AttributeName: 'customerId', AttributeType: 'S' },
+            ],
+            GlobalSecondaryIndexes: [
+                {
+                    IndexName: 'customerId-index',
+                    KeySchema: [
+                        { AttributeName: 'customerId', KeyType: 'HASH' },
+                    ],
+                    Projection: { ProjectionType: 'ALL' },
+                    ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+                },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.FUNCTION_HALL_BOOKINGS);
     }
 
     console.log('\n✅ All tables ready!');
@@ -1615,6 +1678,14 @@ module.exports = {
     createTheaterBooking,
     getAllTheaterBookings,
     getCustomerTheaterBookings,
+    // Function Hall
+    getAllFunctionHalls,
+    createFunctionHall,
+    updateFunctionHall,
+    deleteFunctionHall,
+    createFunctionHallBooking,
+    getAllFunctionHallBookings,
+    getCustomerFunctionHallBookings,
     // Tax Settings
     initializeTaxSettings,
     getTaxSettings: getAllTaxSettings,
@@ -1953,6 +2024,89 @@ async function getAllTheaterBookings() {
 async function getCustomerTheaterBookings(customerId) {
     const response = await docClient.send(new QueryCommand({
         TableName: TABLES.THEATER_BOOKINGS,
+        IndexName: 'customerId-index',
+        KeyConditionExpression: 'customerId = :customerId',
+        ExpressionAttributeValues: { ':customerId': customerId },
+    }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+// ============= FUNCTION HALL OPERATIONS =============
+
+async function getAllFunctionHalls() {
+    const response = await docClient.send(new ScanCommand({
+        TableName: TABLES.FUNCTION_HALLS,
+    }));
+    return response.Items || [];
+}
+
+async function createFunctionHall(hall) {
+    const item = {
+        ...hall,
+        hallId: hall.hallId || `hall_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+    };
+    await docClient.send(new PutCommand({
+        TableName: TABLES.FUNCTION_HALLS,
+        Item: item,
+    }));
+    return item;
+}
+
+async function updateFunctionHall(hallId, updates) {
+    const updateExpressions = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    Object.keys(updates).forEach((key, index) => {
+        if (key === 'hallId') return;
+        updateExpressions.push(`#attr${index} = :val${index}`);
+        expressionAttributeNames[`#attr${index}`] = key;
+        expressionAttributeValues[`:val${index}`] = updates[key];
+    });
+
+    if (updateExpressions.length === 0) return;
+
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.FUNCTION_HALLS,
+        Key: { hallId },
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+}
+
+async function deleteFunctionHall(hallId) {
+    await docClient.send(new DeleteCommand({
+        TableName: TABLES.FUNCTION_HALLS,
+        Key: { hallId },
+    }));
+}
+
+async function createFunctionHallBooking(booking) {
+    const now = new Date().toISOString();
+    const newBooking = {
+        ...booking,
+        bookingId: booking.bookingId || `FH-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        status: 'confirmed',
+        createdAt: now,
+        timestamp: now,
+    };
+
+    await docClient.send(new PutCommand({ TableName: TABLES.FUNCTION_HALL_BOOKINGS, Item: newBooking }));
+    return newBooking;
+}
+
+async function getAllFunctionHallBookings() {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.FUNCTION_HALL_BOOKINGS }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+async function getCustomerFunctionHallBookings(customerId) {
+    const response = await docClient.send(new QueryCommand({
+        TableName: TABLES.FUNCTION_HALL_BOOKINGS,
         IndexName: 'customerId-index',
         KeyConditionExpression: 'customerId = :customerId',
         ExpressionAttributeValues: { ':customerId': customerId },
