@@ -99,6 +99,14 @@ const {
     getAllBarOrders,
     getCustomerBarOrders,
     updateBarOrderStatus,
+    // Theater
+    getAllTheaterShows,
+    createTheaterBooking,
+    getAllTheaterBookings,
+    getCustomerTheaterBookings,
+    createTheaterShow,
+    updateTheaterShow,
+    deleteTheaterShow,
 } = require('./dynamoService');
 
 const app = express();
@@ -1151,6 +1159,71 @@ app.patch('/api/bar-orders/:id/status', async (req, res) => {
     }
 });
 
+// ============= THEATER ROUTES =============
+
+app.get('/api/theater/shows', async (req, res) => {
+    try {
+        const shows = await getAllTheaterShows();
+        res.json(shows);
+    } catch (error) {
+        console.error('Error getting theater shows:', error);
+        res.status(500).json({ error: 'Failed to get theater shows' });
+    }
+});
+
+// Create theater show
+app.post('/api/theater/shows', async (req, res) => {
+    try {
+        const show = await createTheaterShow(req.body);
+        res.status(201).json(show);
+    } catch (error) {
+        console.error('Error creating theater show:', error);
+        res.status(500).json({ error: 'Failed to create theater show' });
+    }
+});
+
+// Update theater show
+app.put('/api/theater/shows/:id', async (req, res) => {
+    try {
+        const show = await updateTheaterShow(req.params.id, req.body);
+        res.json(show);
+    } catch (error) {
+        console.error('Error updating theater show:', error);
+        res.status(500).json({ error: 'Failed to update theater show' });
+    }
+});
+
+// Delete theater show
+app.delete('/api/theater/shows/:id', async (req, res) => {
+    try {
+        await deleteTheaterShow(req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting theater show:', error);
+        res.status(500).json({ error: 'Failed to delete theater show' });
+    }
+});
+
+app.post('/api/theater/bookings', async (req, res) => {
+    try {
+        const booking = await createTheaterBooking(req.body);
+        res.status(201).json(booking);
+    } catch (error) {
+        console.error('Error creating theater booking:', error);
+        res.status(500).json({ error: 'Failed to create theater booking' });
+    }
+});
+
+app.get('/api/theater/bookings/customer/:customerId', async (req, res) => {
+    try {
+        const bookings = await getCustomerTheaterBookings(req.params.customerId);
+        res.json(bookings);
+    } catch (error) {
+        console.error('Error getting theater bookings:', error);
+        res.status(500).json({ error: 'Failed to get theater bookings' });
+    }
+});
+
 // ============= TAX SETTINGS =============
 
 app.get('/api/tax-settings', async (req, res) => {
@@ -1243,6 +1316,10 @@ const startServer = async () => {
             console.log('   GET  /api/tax-settings');
             console.log('   GET  /api/tax-settings/:serviceId');
             console.log('   PUT  /api/tax-settings/:serviceId');
+            console.log('   ---- Theater ----');
+            console.log('   GET  /api/theater/shows');
+            console.log('   POST /api/theater/bookings');
+            console.log('   GET  /api/theater/bookings/customer/:customerId');
             console.log('');
         });
     } catch (error) {

@@ -49,6 +49,8 @@ const TABLES = {
     TAX_SETTINGS: 'JamJamTaxSettings',
     ROOMS: 'JamJamRooms',
     BAR_ORDERS: 'JamJamBarOrders',
+    THEATER_SHOWS: 'JamJamTheaterShows',
+    THEATER_BOOKINGS: 'JamJamTheaterBookings',
 };
 
 // Default Menu Items
@@ -122,6 +124,15 @@ const DEFAULT_ROOMS = [
     { roomId: 'room_11', name: 'Standard Room', tamilName: 'டெய்சி இல்லம்', price: 3500, size: '220 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['S-201', 'S-202'] },
     { roomId: 'room_12', name: 'Family Suite', tamilName: 'சூரியகாந்தி இல்லம்', price: 6000, size: '450 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['FS-101', 'FS-102'] },
     { roomId: 'room_13', name: 'Executive Room', tamilName: 'ஆர்க்கிட் இல்லம்', price: 5200, size: '320 SQ.FT', facilities: ['FREE BREAKFAST', 'FREE PARKING', 'LIVING AREA', 'FREE WIFI', 'RESTAURANTS', '24HRS SAFETY & SECURITY'], ac: true, imageUrl: '', descriptions: [], subImages: [], roomNumbers: ['E-101', 'E-102'] },
+];
+
+// Default Theater Shows Data
+const DEFAULT_THEATER_SHOWS = [
+    { showId: 'show_1', name: 'Magic Show', time: '11:00 AM', duration: '45 min', price: 150, totalSeats: 50, availableSeats: 48, icon: 'magic-staff' },
+    { showId: 'show_2', name: 'Dance Performance', time: '02:00 PM', duration: '60 min', price: 200, totalSeats: 40, availableSeats: 32, icon: 'dance-ballroom' },
+    { showId: 'show_3', name: 'Comedy Night', time: '05:00 PM', duration: '90 min', price: 250, totalSeats: 30, availableSeats: 15, icon: 'emoticon-lol' },
+    { showId: 'show_4', name: 'Musical Concert', time: '07:30 PM', duration: '120 min', price: 350, totalSeats: 50, availableSeats: 25, icon: 'music' },
+    { showId: 'show_5', name: 'Kids Puppet Show', time: '10:00 AM', duration: '30 min', price: 100, totalSeats: 60, availableSeats: 60, icon: 'teddy-bear' },
 ];
 
 // Check if table exists
@@ -578,6 +589,58 @@ const createTables = async () => {
         await waitForTable(TABLES.BAR_ORDERS);
     } else {
         console.log(`✓ Table ${TABLES.BAR_ORDERS} already exists`);
+    }
+
+    // 17. Theater Shows Table
+    if (!(await tableExists(TABLES.THEATER_SHOWS))) {
+        console.log(`📦 Creating table: ${TABLES.THEATER_SHOWS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.THEATER_SHOWS,
+            KeySchema: [
+                { AttributeName: 'showId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'showId', AttributeType: 'S' },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.THEATER_SHOWS);
+
+        // Seed default shows
+        console.log('📝 Seeding default theater shows...');
+        for (const show of DEFAULT_THEATER_SHOWS) {
+            await docClient.send(new PutCommand({
+                TableName: TABLES.THEATER_SHOWS,
+                Item: { ...show, createdAt: new Date().toISOString() },
+            }));
+        }
+    }
+
+    // 18. Theater Bookings Table
+    if (!(await tableExists(TABLES.THEATER_BOOKINGS))) {
+        console.log(`📦 Creating table: ${TABLES.THEATER_BOOKINGS}`);
+        await client.send(new CreateTableCommand({
+            TableName: TABLES.THEATER_BOOKINGS,
+            KeySchema: [
+                { AttributeName: 'bookingId', KeyType: 'HASH' },
+            ],
+            AttributeDefinitions: [
+                { AttributeName: 'bookingId', AttributeType: 'S' },
+                { AttributeName: 'customerId', AttributeType: 'S' },
+            ],
+            GlobalSecondaryIndexes: [
+                {
+                    IndexName: 'customerId-index',
+                    KeySchema: [
+                        { AttributeName: 'customerId', KeyType: 'HASH' },
+                    ],
+                    Projection: { ProjectionType: 'ALL' },
+                    ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+                },
+            ],
+            ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 },
+        }));
+        await waitForTable(TABLES.THEATER_BOOKINGS);
     }
 
     console.log('\n✅ All tables ready!');
@@ -1476,6 +1539,10 @@ module.exports = {
     getAllCombos,
     updateCombo,
     deleteCombo,
+    // Theater Shows
+    createTheaterShow,
+    updateTheaterShow,
+    deleteTheaterShow,
     // Restaurant Orders
     createRestaurantOrder,
     getRestaurantOrderById,
@@ -1543,6 +1610,11 @@ module.exports = {
     getAllBarOrders,
     getCustomerBarOrders,
     updateBarOrderStatus,
+    // Theater
+    getAllTheaterShows,
+    createTheaterBooking,
+    getAllTheaterBookings,
+    getCustomerTheaterBookings,
     // Tax Settings
     initializeTaxSettings,
     getTaxSettings: getAllTaxSettings,
@@ -1754,6 +1826,7 @@ const DEFAULT_TAX_SETTINGS = [
     { serviceId: 'pool', serviceName: 'Pool', description: 'Swimming pool access', taxPercent: 18 },
     { serviceId: 'bar', serviceName: 'Bar', description: 'Bar and beverages', taxPercent: 18 },
     { serviceId: 'rooms', serviceName: 'Rooms', description: 'Room booking and stay', taxPercent: 12 },
+    { serviceId: 'theater', serviceName: 'Theater', description: 'Theater and shows', taxPercent: 18 },
 ];
 
 async function initializeTaxSettings() {
@@ -1767,6 +1840,13 @@ async function initializeTaxSettings() {
                 await docClient.send(new PutCommand({ TableName: TABLES.TAX_SETTINGS, Item: roomSetting }));
                 console.log('Added rooms tax setting');
             }
+            // Check if theater is missing and add it
+            const hasTheater = existing.Items.some(item => item.serviceId === 'theater');
+            if (!hasTheater) {
+                const theaterSetting = DEFAULT_TAX_SETTINGS.find(s => s.serviceId === 'theater');
+                await docClient.send(new PutCommand({ TableName: TABLES.TAX_SETTINGS, Item: theaterSetting }));
+                console.log('Added theater tax setting');
+            }
             return;
         }
         await Promise.all(DEFAULT_TAX_SETTINGS.map(setting =>
@@ -1776,4 +1856,106 @@ async function initializeTaxSettings() {
     } catch (error) {
         console.error('Error initializing tax settings:', error);
     }
+}
+
+// ============= THEATER OPERATIONS =============
+
+async function getAllTheaterShows() {
+    const response = await docClient.send(new ScanCommand({
+        TableName: TABLES.THEATER_SHOWS,
+    }));
+    return response.Items || [];
+}
+
+async function createTheaterShow(show) {
+    const item = {
+        ...show,
+        showId: show.showId || `show_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+    };
+    await docClient.send(new PutCommand({
+        TableName: TABLES.THEATER_SHOWS,
+        Item: item,
+    }));
+    return item;
+}
+
+async function updateTheaterShow(showId, updates) {
+    const updateExpressions = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    Object.keys(updates).forEach((key, index) => {
+        if (key === 'showId') return;
+        updateExpressions.push(`#attr${index} = :val${index}`);
+        expressionAttributeNames[`#attr${index}`] = key;
+        expressionAttributeValues[`:val${index}`] = updates[key];
+    });
+
+    if (updateExpressions.length === 0) return;
+
+    const response = await docClient.send(new UpdateCommand({
+        TableName: TABLES.THEATER_SHOWS,
+        Key: { showId },
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues,
+        ReturnValues: 'ALL_NEW',
+    }));
+    return response.Attributes;
+}
+
+async function deleteTheaterShow(showId) {
+    await docClient.send(new DeleteCommand({
+        TableName: TABLES.THEATER_SHOWS,
+        Key: { showId },
+    }));
+}
+
+async function createTheaterBooking(booking) {
+    const now = new Date().toISOString();
+    const newBooking = {
+        ...booking,
+        bookingId: booking.bookingId || `TH-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        status: 'confirmed',
+        createdAt: now,
+        timestamp: now,
+    };
+
+    // Update available seats in theater shows
+    try {
+        const showId = booking.showId;
+        const ticketCount = parseInt(booking.ticketCount) || 0;
+
+        if (showId && ticketCount > 0) {
+            await docClient.send(new UpdateCommand({
+                TableName: TABLES.THEATER_SHOWS,
+                Key: { showId },
+                UpdateExpression: 'SET availableSeats = availableSeats - :val',
+                ConditionExpression: 'availableSeats >= :val',
+                ExpressionAttributeValues: { ':val': ticketCount }
+            }));
+        }
+    } catch (err) {
+        console.error(`Error updating theater seat availability for show ${booking.showId}:`, err);
+        // We might want to throw here if seat availability is critical
+    }
+
+    await docClient.send(new PutCommand({ TableName: TABLES.THEATER_BOOKINGS, Item: newBooking }));
+    return newBooking;
+}
+
+async function getAllTheaterBookings() {
+    const response = await docClient.send(new ScanCommand({ TableName: TABLES.THEATER_BOOKINGS }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
+
+async function getCustomerTheaterBookings(customerId) {
+    const response = await docClient.send(new QueryCommand({
+        TableName: TABLES.THEATER_BOOKINGS,
+        IndexName: 'customerId-index',
+        KeyConditionExpression: 'customerId = :customerId',
+        ExpressionAttributeValues: { ':customerId': customerId },
+    }));
+    return (response.Items || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
