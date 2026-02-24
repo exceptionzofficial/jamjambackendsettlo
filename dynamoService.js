@@ -1359,13 +1359,15 @@ const getAdminDashboardStats = async () => {
             .reduce((sum, o) => sum + (o.amount || 0), 0);
     };
 
-    const calculateByService = (orders, startDate) => {
+    const calculateByPayment = (orders, startDate) => {
         const filtered = orders.filter(o => o.createdAt >= startDate);
-        const byService = {};
+        const byPayment = { cash: 0, upi: 0 };
         filtered.forEach(o => {
-            byService[o.service] = (byService[o.service] || 0) + (o.amount || 0);
+            const method = (o.paymentMethod || '').toLowerCase();
+            if (method.includes('upi') || method.includes('qr')) byPayment.upi += (o.amount || 0);
+            else byPayment.cash += (o.amount || 0);
         });
-        return byService;
+        return byPayment;
     };
 
     return {
@@ -1373,21 +1375,25 @@ const getAdminDashboardStats = async () => {
             revenue: calculateRevenue(allOrders, todayStart),
             orderCount: allOrders.filter(o => o.createdAt >= todayStart).length,
             byService: calculateByService(allOrders, todayStart),
+            byPayment: calculateByPayment(allOrders, todayStart),
         },
         week: {
             revenue: calculateRevenue(allOrders, weekStart),
             orderCount: allOrders.filter(o => o.createdAt >= weekStart).length,
             byService: calculateByService(allOrders, weekStart),
+            byPayment: calculateByPayment(allOrders, weekStart),
         },
         month: {
             revenue: calculateRevenue(allOrders, monthStart),
             orderCount: allOrders.filter(o => o.createdAt >= monthStart).length,
             byService: calculateByService(allOrders, monthStart),
+            byPayment: calculateByPayment(allOrders, monthStart),
         },
         year: {
             revenue: calculateRevenue(allOrders, yearStart),
             orderCount: allOrders.filter(o => o.createdAt >= yearStart).length,
             byService: calculateByService(allOrders, yearStart),
+            byPayment: calculateByPayment(allOrders, yearStart),
         },
         totalOrders: allOrders.length,
     };
@@ -1402,6 +1408,7 @@ const getAllOrdersForAdmin = async (startDate, endDate) => {
         juiceOrders,
         massageOrders,
         poolOrders,
+        barOrders,
     ] = await Promise.all([
         docClient.send(new ScanCommand({ TableName: TABLES.BOOKINGS })),
         docClient.send(new ScanCommand({ TableName: TABLES.RESTAURANT_ORDERS })),
@@ -1409,6 +1416,7 @@ const getAllOrdersForAdmin = async (startDate, endDate) => {
         docClient.send(new ScanCommand({ TableName: TABLES.JUICE_ORDERS })),
         docClient.send(new ScanCommand({ TableName: TABLES.MASSAGE_ORDERS })),
         docClient.send(new ScanCommand({ TableName: TABLES.POOL_ORDERS })),
+        docClient.send(new ScanCommand({ TableName: TABLES.BAR_ORDERS })),
     ]);
 
     let allOrders = [
@@ -1418,6 +1426,7 @@ const getAllOrdersForAdmin = async (startDate, endDate) => {
         ...(juiceOrders.Items || []).map(o => ({ ...o, service: 'Juice', createdAt: o.createdAt || o.timestamp })),
         ...(massageOrders.Items || []).map(o => ({ ...o, service: 'Massage', createdAt: o.createdAt || o.timestamp })),
         ...(poolOrders.Items || []).map(o => ({ ...o, service: 'Pool', createdAt: o.createdAt || o.timestamp })),
+        ...(barOrders.Items || []).map(o => ({ ...o, service: 'Bar', createdAt: o.createdAt || o.timestamp })),
     ];
 
     // Filter by date range if provided
