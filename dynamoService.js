@@ -1479,6 +1479,12 @@ const getAdminDashboardStats = async () => {
         ...(barOrders.Items || []).map(o => ({ ...o, service: 'Bar', amount: o.totalAmount || 0, createdAt: o.createdAt || o.timestamp })),
     ];
 
+    console.log(`[DASHBOARD STATS DEBUG]`);
+    console.log(`Now: ${now.toISOString()}`);
+    console.log(`TodayStart: ${todayStart}`);
+    console.log(`Total Orders Scan: ${allOrders.length}`);
+    console.log(`Orders Today count: ${allOrders.filter(o => o.createdAt >= todayStart).length}`);
+
     const calculateRevenue = (orders, startDate) => {
         return orders
             .filter(o => o.createdAt >= startDate)
@@ -1494,6 +1500,16 @@ const getAdminDashboardStats = async () => {
             else byPayment.cash += (o.amount || 0);
         });
         return byPayment;
+    };
+
+    const calculateByService = (orders, startDate) => {
+        const filtered = orders.filter(o => o.createdAt >= startDate);
+        const byService = {};
+        filtered.forEach(o => {
+            const svc = o.service || 'Other';
+            byService[svc] = (byService[svc] || 0) + (o.amount || 0);
+        });
+        return byService;
     };
 
     return {
@@ -1522,6 +1538,7 @@ const getAdminDashboardStats = async () => {
             byPayment: calculateByPayment(allOrders, yearStart),
         },
         totalOrders: allOrders.length,
+        agentStatus: 'fixed',
     };
 };
 

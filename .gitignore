@@ -32,3 +32,9 @@ build/
 *.pid
 *.seed
 *.pid.lock
+# Debug/Samples
+verify_stats.js
+sample_db.js
+db_samples*.json
+stats_output*.json
+server_debug.log
